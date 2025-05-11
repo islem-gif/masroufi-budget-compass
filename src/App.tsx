@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,11 @@ import Transactions from "@/pages/transactions/Transactions";
 import AddTransaction from "@/pages/transactions/AddTransaction";
 import Budget from "@/pages/budget/Budget";
 import Challenges from "@/pages/gamification/Challenges";
+import Reports from "@/pages/reports/Reports";
+import Goals from "@/pages/goals/Goals";
+import Family from "@/pages/family/Family";
+import Deals from "@/pages/deals/Deals";
+import Settings from "@/pages/settings/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,8 +38,12 @@ const App = () => (
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/transactions/add" element={<AddTransaction />} />
               <Route path="/budget" element={<Budget />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/goals" element={<Goals />} />
+              <Route path="/family" element={<Family />} />
+              <Route path="/deals" element={<Deals />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/challenges" element={<Challenges />} />
-              {/* Other routes will be added here */}
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

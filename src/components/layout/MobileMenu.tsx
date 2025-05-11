@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, CreditCard, PieChart, Target, User } from 'lucide-react';
+import { Home, CreditCard, PieChart, Target, Award } from 'lucide-react';
 
 const MobileMenu = () => {
   const location = useLocation();
@@ -11,7 +11,7 @@ const MobileMenu = () => {
     { name: 'Transactions', path: '/transactions', icon: CreditCard },
     { name: 'Reports', path: '/reports', icon: PieChart },
     { name: 'Goals', path: '/goals', icon: Target },
-    { name: 'Profile', path: '/profile', icon: User }
+    { name: 'Challenges', path: '/challenges', icon: Award }
   ];
 
   return (

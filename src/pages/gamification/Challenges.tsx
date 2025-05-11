@@ -1,286 +1,477 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMasroufi } from '@/lib/MasroufiContext';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Award, Trophy, Star, Circle, Target, Medal } from 'lucide-react';
-import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Award, Target, Zap, TrendingUp, Download, Star, Trophy, Gift, Crown } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-// Interface pour les défis
-interface Challenge {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  target: number;
-  progress: number;
-  reward: string;
-  completed: boolean;
-  category?: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-}
+// Sample challenges for the app
+const sampleChallenges = [
+  {
+    id: "1",
+    title: "Budget Master",
+    description: "Stay under your monthly budget for 3 consecutive categories",
+    points: 300,
+    progress: 2,
+    goal: 3,
+    difficulty: "medium",
+    category: "budget",
+    icon: "TrendingUp",
+    status: "in-progress"
+  },
+  {
+    id: "2",
+    title: "Savings Champion",
+    description: "Save 15% of your income this month",
+    points: 500,
+    progress: 12,
+    goal: 15,
+    difficulty: "hard",
+    category: "saving",
+    icon: "Target",
+    status: "in-progress"
+  },
+  {
+    id: "3",
+    title: "Expense Tracker",
+    description: "Record all expenses for 7 consecutive days",
+    points: 200,
+    progress: 7,
+    goal: 7,
+    difficulty: "easy",
+    category: "tracking",
+    icon: "Zap",
+    status: "completed"
+  },
+  {
+    id: "4",
+    title: "Goal Achiever",
+    description: "Create and fund a financial goal",
+    points: 250,
+    progress: 1,
+    goal: 1,
+    difficulty: "easy",
+    category: "goals",
+    icon: "Award",
+    status: "completed"
+  },
+  {
+    id: "5",
+    title: "Debt Reducer",
+    description: "Pay more than the minimum on a debt for 3 months",
+    points: 450,
+    progress: 0,
+    goal: 3,
+    difficulty: "medium",
+    category: "debt",
+    icon: "Download",
+    status: "not-started"
+  },
+  {
+    id: "6",
+    title: "Financial Scholar",
+    description: "Read 3 financial education articles",
+    points: 150,
+    progress: 1,
+    goal: 3,
+    difficulty: "easy",
+    category: "education",
+    icon: "Star",
+    status: "in-progress"
+  }
+];
+
+// Sample achievements for the gamification system
+const sampleAchievements = [
+  {
+    id: "1",
+    title: "First Steps",
+    description: "Complete your first financial challenge",
+    badge: "🎯",
+    level: "bronze",
+    unlocked: true,
+    date: "2023-04-15"
+  },
+  {
+    id: "2",
+    title: "Budget Wizard",
+    description: "Successfully stay within budget for all categories for one month",
+    badge: "🧙‍♂️",
+    level: "silver",
+    unlocked: true,
+    date: "2023-04-28"
+  },
+  {
+    id: "3",
+    title: "Saving Star",
+    description: "Save over 20% of your income in one month",
+    badge: "⭐",
+    level: "gold", 
+    unlocked: false,
+    date: null
+  },
+  {
+    id: "4", 
+    title: "Financial Guru",
+    description: "Complete 10 financial challenges",
+    badge: "👑",
+    level: "platinum",
+    unlocked: false,
+    date: null
+  }
+];
+
+// Sample rewards that can be redeemed with points
+const sampleRewards = [
+  {
+    id: "1",
+    title: "Premium Dashboard",
+    description: "Access to advanced financial insights and analysis tools",
+    cost: 500,
+    category: "feature",
+    available: true
+  },
+  {
+    id: "2",
+    title: "Custom Budget Categories",
+    description: "Create your own fully customized budget categories",
+    cost: 300,
+    category: "feature",
+    available: true
+  },
+  {
+    id: "3",
+    title: "10% Coffee Shop Discount",
+    description: "Get 10% off at participating coffee shops",
+    cost: 200,
+    category: "discount",
+    available: true,
+    partner: "Various Coffee Shops"
+  },
+  {
+    id: "4",
+    title: "Financial Advisor Session",
+    description: "30-minute session with a financial advisor",
+    cost: 1000,
+    category: "service",
+    available: false,
+    comingSoon: true
+  }
+];
 
 const Challenges = () => {
-  const { user, transactions, goals } = useMasroufi();
+  const { user } = useMasroufi();
+  const { toast } = useToast();
+  const [userPoints, setUserPoints] = useState(750);
+  const [level, setLevel] = useState(2);
+  const [challenges, setChallenges] = useState(sampleChallenges);
+  const [achievements, setAchievements] = useState(sampleAchievements);
+  const [rewards, setRewards] = useState(sampleRewards);
   
-  // Générer des défis basés sur l'activité de l'utilisateur
-  const generateChallenges = (): Challenge[] => {
-    const totalSavings = transactions
-      .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0) -
-      transactions.filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0);
-    
-    const foodExpenses = transactions
-      .filter(t => t.type === 'expense' && t.categoryId === 'food')
-      .reduce((sum, t) => sum + t.amount, 0);
-    
-    const challenges: Challenge[] = [
-      {
-        id: '1',
-        title: 'Économiseur débutant',
-        description: 'Économisez 100 TND',
-        icon: <Star className="text-yellow-500" />,
-        target: 100,
-        progress: Math.min(totalSavings, 100),
-        reward: 'Badge économiseur débutant',
-        completed: totalSavings >= 100,
-        difficulty: 'easy'
-      },
-      {
-        id: '2',
-        title: 'Économiseur intermédiaire',
-        description: 'Économisez 500 TND',
-        icon: <Award className="text-blue-500" />,
-        target: 500,
-        progress: Math.min(totalSavings, 500),
-        reward: 'Badge économiseur intermédiaire',
-        completed: totalSavings >= 500,
-        difficulty: 'medium'
-      },
-      {
-        id: '3',
-        title: 'Économiseur expert',
-        description: 'Économisez 1000 TND',
-        icon: <Trophy className="text-purple-500" />,
-        target: 1000,
-        progress: Math.min(totalSavings, 1000),
-        reward: 'Badge économiseur expert',
-        completed: totalSavings >= 1000,
-        difficulty: 'hard'
-      },
-      {
-        id: '4',
-        title: 'Gourmet économe',
-        description: 'Réduisez vos dépenses alimentaires à moins de 200 TND/mois',
-        icon: <Medal className="text-green-500" />,
-        target: 200,
-        progress: Math.max(0, 200 - foodExpenses),
-        reward: '+5% de cashback virtuel sur vos économies',
-        completed: foodExpenses < 200,
-        category: 'Nourriture',
-        difficulty: 'medium'
-      },
-      {
-        id: '5',
-        title: 'Objectif en vue',
-        description: 'Créez et atteignez 50% d\'un objectif d\'épargne',
-        icon: <Target className="text-red-500" />,
-        target: 50,
-        progress: goals.length > 0 
-          ? Math.max(...goals.map(g => (g.currentAmount / g.targetAmount) * 100))
-          : 0,
-        reward: 'Débloquez l\'outil de projection d\'épargne',
-        completed: goals.some(g => (g.currentAmount / g.targetAmount) >= 0.5),
-        difficulty: 'easy'
+  // Calculate the experience needed for the next level
+  const nextLevelXp = level * 500;
+  const currentXp = userPoints % nextLevelXp;
+  const xpProgress = (currentXp / nextLevelXp) * 100;
+  
+  const handleCompleteChallenge = (challengeId: string) => {
+    const challenge = challenges.find(c => c.id === challengeId);
+    if (challenge && challenge.status !== "completed") {
+      // Update challenge status
+      setChallenges(
+        challenges.map(c => 
+          c.id === challengeId ? { ...c, status: "completed", progress: c.goal } : c
+        )
+      );
+      
+      // Add points
+      setUserPoints(userPoints + challenge.points);
+      
+      // Show toast notification
+      toast({
+        title: "Challenge Completed! 🎉",
+        description: `You earned ${challenge.points} points for completing "${challenge.title}"`,
+      });
+    }
+  };
+  
+  const handleRedeemReward = (rewardId: string) => {
+    const reward = rewards.find(r => r.id === rewardId);
+    if (reward) {
+      if (reward.cost <= userPoints) {
+        // Deduct points
+        setUserPoints(userPoints - reward.cost);
+        
+        // Update reward status (in a real app, we would track redeemed rewards)
+        setRewards(
+          rewards.map(r => 
+            r.id === rewardId ? { ...r, available: false, redeemed: true } : r
+          )
+        );
+        
+        // Show toast notification
+        toast({
+          title: "Reward Redeemed!",
+          description: `You've successfully redeemed "${reward.title}"`,
+        });
+      } else {
+        toast({
+          title: "Not Enough Points",
+          description: `You need ${reward.cost - userPoints} more points to redeem this reward`,
+          variant: "destructive"
+        });
       }
-    ];
-    
-    return challenges;
+    }
   };
   
-  const [challenges] = useState<Challenge[]>(generateChallenges);
-  const [showTip, setShowTip] = useState(true);
-  
-  const completedChallenges = challenges.filter(c => c.completed);
-  const pendingChallenges = challenges.filter(c => !c.completed);
-  
-  const claimReward = (challenge: Challenge) => {
-    toast.success(`Félicitations! Vous avez réclamé : ${challenge.reward}`);
+  useEffect(() => {
+    // Check for level up
+    const newLevel = Math.floor(userPoints / 500) + 1;
+    if (newLevel > level) {
+      toast({
+        title: "Level Up! 🎊",
+        description: `You've reached level ${newLevel}!`,
+      });
+      setLevel(newLevel);
+    }
+  }, [userPoints, level]);
+
+  // Get the appropriate icon component based on the icon name
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case "TrendingUp": return TrendingUp;
+      case "Target": return Target;
+      case "Zap": return Zap;
+      case "Award": return Award;
+      case "Download": return Download;
+      case "Star": return Star;
+      default: return Trophy;
+    }
+  };
+
+  // Helper function to determine badge background color based on difficulty
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case "easy": return "bg-green-500";
+      case "medium": return "bg-yellow-500";
+      case "hard": return "bg-red-500";
+      default: return "bg-blue-500";
+    }
   };
   
+  // Helper function to determine achievement badge color
+  const getAchievementColor = (level: string) => {
+    switch (level) {
+      case "bronze": return "bg-amber-600";
+      case "silver": return "bg-gray-400";
+      case "gold": return "bg-yellow-400";
+      case "platinum": return "bg-indigo-500";
+      default: return "bg-blue-500";
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 pb-16 md:pb-0">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Défis d'épargne</h1>
-          <p className="text-muted-foreground">Relevez des défis pour économiser plus</p>
+          <h1 className="text-2xl font-bold">Savings Challenges</h1>
+          <p className="text-muted-foreground">
+            Complete challenges to earn points and rewards
+          </p>
         </div>
-        {completedChallenges.length > 0 && (
-          <div className="flex items-center">
-            <Trophy className="h-5 w-5 text-yellow-500 mr-2" />
-            <span>{completedChallenges.length} défi(s) terminé(s)</span>
-          </div>
-        )}
       </div>
       
-      {/* Conseil du jour */}
-      {showTip && (
-        <Card className="bg-masroufi-secondary/10">
-          <CardContent className="p-4 flex items-start space-x-4">
-            <div className="bg-masroufi-secondary/20 p-2 rounded-full">
-              <Circle className="h-6 w-6 text-masroufi-secondary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg">Conseil du jour</h3>
-              <p className="text-sm text-muted-foreground">
-                Économisez 10% de vos revenus chaque mois pour atteindre la liberté financière plus rapidement.
-              </p>
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => setShowTip(false)}>
-              Fermer
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-      
-      {/* Défis en cours */}
-      <h2 className="text-xl font-semibold mt-6">Défis en cours</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {pendingChallenges.length === 0 ? (
-          <Card className="col-span-full">
-            <CardContent className="p-6 text-center">
-              <Trophy className="mx-auto h-12 w-12 text-gray-300" />
-              <h3 className="mt-4 font-medium">Félicitations!</h3>
-              <p className="text-sm text-muted-foreground">
-                Vous avez complété tous les défis disponibles.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          pendingChallenges.map(challenge => (
-            <Card key={challenge.id} className="overflow-hidden">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      {challenge.icon}
-                    </div>
-                    <CardTitle className="text-base">{challenge.title}</CardTitle>
-                  </div>
-                  <Badge variant="outline" className={
-                    challenge.difficulty === 'easy' ? 'border-green-500 text-green-500' :
-                    challenge.difficulty === 'medium' ? 'border-yellow-500 text-yellow-500' :
-                    'border-red-500 text-red-500'
-                  }>
-                    {challenge.difficulty === 'easy' ? 'Facile' :
-                     challenge.difficulty === 'medium' ? 'Moyen' : 'Difficile'}
-                  </Badge>
+      {/* User Progress */}
+      <Card className="bg-gradient-to-r from-masroufi-primary/20 to-masroufi-secondary/20">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 flex items-center justify-center rounded-full bg-masroufi-primary/20 border-2 border-masroufi-primary">
+                <span className="text-2xl font-bold">{level}</span>
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-medium">
+                  {user?.firstName} {user?.lastName}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-yellow-500" />
+                  <span>{userPoints} points</span>
                 </div>
-                <CardDescription>{challenge.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 pb-2">
-                {challenge.category && (
-                  <Badge variant="secondary">{challenge.category}</Badge>
-                )}
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progression</span>
-                    <span>{Math.round((challenge.progress / challenge.target) * 100)}%</span>
-                  </div>
-                  <Progress 
-                    value={(challenge.progress / challenge.target) * 100} 
-                    className="h-2"
-                  />
-                </div>
-                
-                <div className="text-sm">
-                  <span className="font-medium">Récompense:</span> {challenge.reward}
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-      
-      {/* Défis complétés */}
-      {completedChallenges.length > 0 && (
-        <>
-          <h2 className="text-xl font-semibold mt-6">Défis complétés</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {completedChallenges.map(challenge => (
-              <Card key={challenge.id} className="overflow-hidden border-green-200 dark:border-green-900">
-                <CardHeader className="pb-2 bg-green-50/50 dark:bg-green-900/20">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                        {challenge.icon}
-                      </div>
-                      <CardTitle className="text-base">{challenge.title}</CardTitle>
-                    </div>
-                    <Badge className="bg-green-500">Complété</Badge>
-                  </div>
-                  <CardDescription>{challenge.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4 pb-2 pt-4">
-                  <div className="space-y-2">
-                    <Progress value={100} className="h-2 bg-green-100 dark:bg-green-900" />
-                  </div>
-                  
-                  <div className="text-sm">
-                    <span className="font-medium">Récompense:</span> {challenge.reward}
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => claimReward(challenge)}
-                  >
-                    Réclamer la récompense
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </>
-      )}
-      
-      {/* Section de jeu simple - Économie quotidienne */}
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Économie quotidienne</CardTitle>
-          <CardDescription>
-            Faites des choix pour économiser de l'argent chaque jour
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-4 border rounded-lg">
-              <h3 className="font-medium mb-2">Défi du jour :</h3>
-              <p>Apporter votre déjeuner au travail/école au lieu d'acheter à l'extérieur</p>
-              <div className="flex justify-between items-center mt-4">
-                <div>
-                  <span className="font-semibold">Économie potentielle :</span>
-                  <span className="ml-2 text-green-600">15 {user?.currency || 'TND'}</span>
-                </div>
-                <Button onClick={() => toast.success("Défi accepté! Revenez demain pour un nouveau défi.")}>
-                  J'accepte le défi
-                </Button>
               </div>
             </div>
             
-            <div className="p-4 border rounded-lg">
-              <h3 className="font-medium mb-2">Astuce d'épargne :</h3>
-              <p>Essayez la règle 50/30/20 : 50% pour les besoins, 30% pour les envies et 20% pour l'épargne.</p>
+            <div className="w-full md:w-1/2">
+              <div className="flex justify-between text-sm mb-1">
+                <span>Level {level}</span>
+                <span>Level {level + 1}</span>
+              </div>
+              <Progress value={xpProgress} className="h-2" />
+              <p className="text-xs text-center mt-1">
+                {currentXp} / {nextLevelXp} XP to next level
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
+      
+      {/* Main Content */}
+      <Tabs defaultValue="challenges" className="w-full">
+        <TabsList>
+          <TabsTrigger value="challenges">Challenges</TabsTrigger>
+          <TabsTrigger value="achievements">Achievements</TabsTrigger>
+          <TabsTrigger value="rewards">Rewards</TabsTrigger>
+        </TabsList>
+        
+        {/* Challenges Tab */}
+        <TabsContent value="challenges" className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {challenges.map((challenge) => {
+              const IconComponent = getIconComponent(challenge.icon);
+              const progress = (challenge.progress / challenge.goal) * 100;
+              const isCompleted = challenge.status === "completed";
+              
+              return (
+                <Card key={challenge.id} className={isCompleted ? "border-green-500" : ""}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <IconComponent className="h-5 w-5 text-masroufi-primary" />
+                        {challenge.title}
+                      </CardTitle>
+                      <Badge className={getDifficultyColor(challenge.difficulty)}>
+                        {challenge.difficulty}
+                      </Badge>
+                    </div>
+                    <CardDescription>{challenge.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pb-2">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Progress</span>
+                        <span>
+                          {challenge.progress}/{challenge.goal}
+                        </span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
+                    </div>
+                  </CardContent>
+                  <CardFooter className="border-t pt-3 flex justify-between">
+                    <div className="flex items-center">
+                      <Trophy className="h-4 w-4 text-yellow-500 mr-1" />
+                      <span className="font-medium">{challenge.points} pts</span>
+                    </div>
+                    {!isCompleted && (
+                      <Button 
+                        size="sm"
+                        onClick={() => handleCompleteChallenge(challenge.id)}
+                        disabled={challenge.status === "not-started"}
+                      >
+                        {challenge.status === "not-started" ? "Start" : "Complete"}
+                      </Button>
+                    )}
+                    {isCompleted && (
+                      <Badge variant="outline" className="bg-green-100 text-green-800">
+                        Completed
+                      </Badge>
+                    )}
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+        
+        {/* Achievements Tab */}
+        <TabsContent value="achievements" className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {achievements.map((achievement) => {
+              const isLocked = !achievement.unlocked;
+              
+              return (
+                <Card key={achievement.id} className={isLocked ? "opacity-70" : ""}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <div 
+                          className={`w-8 h-8 flex items-center justify-center rounded-full 
+                            ${isLocked ? "bg-gray-200" : getAchievementColor(achievement.level)}`}
+                        >
+                          {isLocked ? <Lock className="h-4 w-4" /> : <span>{achievement.badge}</span>}
+                        </div>
+                        {achievement.title}
+                      </CardTitle>
+                      <Badge variant="outline" className="capitalize">
+                        {achievement.level}
+                      </Badge>
+                    </div>
+                    <CardDescription>{achievement.description}</CardDescription>
+                  </CardHeader>
+                  <CardFooter className="border-t pt-3 justify-between">
+                    {achievement.unlocked ? (
+                      <span className="text-sm text-muted-foreground">
+                        Unlocked on {new Date(achievement.date!).toLocaleDateString()}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground flex items-center">
+                        <Lock className="h-3 w-3 mr-1" /> Locked
+                      </span>
+                    )}
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+        
+        {/* Rewards Tab */}
+        <TabsContent value="rewards" className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {rewards.map((reward) => {
+              const canRedeem = userPoints >= reward.cost && reward.available;
+              
+              return (
+                <Card key={reward.id} className={!reward.available ? "opacity-70" : ""}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-lg">{reward.title}</CardTitle>
+                      <div className="flex items-center">
+                        <Trophy className="h-4 w-4 text-yellow-500 mr-1" />
+                        <span className="font-medium">{reward.cost}</span>
+                      </div>
+                    </div>
+                    <CardDescription>{reward.description}</CardDescription>
+                    {reward.partner && (
+                      <Badge variant="outline" className="mt-2">
+                        Partner: {reward.partner}
+                      </Badge>
+                    )}
+                  </CardHeader>
+                  <CardFooter className="border-t pt-3 flex justify-between">
+                    <Badge variant="outline" className="capitalize">
+                      {reward.category}
+                    </Badge>
+                    
+                    {reward.comingSoon ? (
+                      <Badge variant="outline">Coming Soon</Badge>
+                    ) : (
+                      <Button 
+                        size="sm"
+                        disabled={!canRedeem}
+                        onClick={() => handleRedeemReward(reward.id)}
+                      >
+                        {canRedeem ? "Redeem" : userPoints < reward.cost ? "Not Enough Points" : "Redeemed"}
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

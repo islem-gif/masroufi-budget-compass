@@ -9,7 +9,8 @@ import {
   DollarSign, 
   Settings, 
   Users, 
-  Tag 
+  Tag,
+  Award 
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -23,6 +24,7 @@ const Sidebar = () => {
     { name: 'Goals', path: '/goals', icon: Target },
     { name: 'Family', path: '/family', icon: Users },
     { name: 'Deals', path: '/deals', icon: Tag },
+    { name: 'Challenges', path: '/challenges', icon: Award },
     { name: 'Settings', path: '/settings', icon: Settings }
   ];
 
