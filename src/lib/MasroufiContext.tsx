@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { 
   User, 
@@ -45,6 +44,9 @@ interface MasroufiContextType {
 const MasroufiContext = createContext<MasroufiContextType | undefined>(undefined);
 
 export const MasroufiProvider = ({ children }: { children: ReactNode }) => {
+  // Modifier le mockUser pour utiliser TND par défaut
+  const modifiedMockUser = {...mockUser, currency: 'TND'};
+  
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [categories, setCategories] = useState<Category[]>(mockCategories);
@@ -64,7 +66,7 @@ export const MasroufiProvider = ({ children }: { children: ReactNode }) => {
       lastName,
       darkMode: false,
       language: 'fr',
-      currency: 'MAD'
+      currency: 'TND'
     };
     setUser(newUser);
     setIsAuthenticated(true);
@@ -72,8 +74,8 @@ export const MasroufiProvider = ({ children }: { children: ReactNode }) => {
 
   const loginUser = (email: string, password: string) => {
     // In a real app, we'd validate credentials
-    // For demo, we'll just use mockUser
-    setUser(mockUser);
+    // For demo, we'll just use mockUser with modified currency
+    setUser(modifiedMockUser);
     setIsAuthenticated(true);
   };
 

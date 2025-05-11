@@ -8,6 +8,10 @@ import MainLayout from "@/components/layout/MainLayout";
 import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
 import Dashboard from "@/pages/Dashboard";
+import Transactions from "@/pages/transactions/Transactions";
+import AddTransaction from "@/pages/transactions/AddTransaction";
+import Budget from "@/pages/budget/Budget";
+import Challenges from "@/pages/gamification/Challenges";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +29,10 @@ const App = () => (
             <Route element={<MainLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/transactions" element={<Transactions />} />
+              <Route path="/transactions/add" element={<AddTransaction />} />
+              <Route path="/budget" element={<Budget />} />
+              <Route path="/challenges" element={<Challenges />} />
               {/* Other routes will be added here */}
             </Route>
             <Route path="*" element={<NotFound />} />
