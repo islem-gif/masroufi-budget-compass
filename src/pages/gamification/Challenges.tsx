@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Award, Target, Zap, TrendingUp, Download, Star, Trophy, Gift, Crown } from 'lucide-react';
+import { Award, Target, Zap, TrendingUp, Download, Star, Trophy, Gift, Crown, LockIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 // Sample challenges for the app
@@ -399,7 +398,7 @@ const Challenges = () => {
                           className={`w-8 h-8 flex items-center justify-center rounded-full 
                             ${isLocked ? "bg-gray-200" : getAchievementColor(achievement.level)}`}
                         >
-                          {isLocked ? <Lock className="h-4 w-4" /> : <span>{achievement.badge}</span>}
+                          {isLocked ? <LockIcon className="h-4 w-4" /> : <span>{achievement.badge}</span>}
                         </div>
                         {achievement.title}
                       </CardTitle>
@@ -416,7 +415,7 @@ const Challenges = () => {
                       </span>
                     ) : (
                       <span className="text-sm text-muted-foreground flex items-center">
-                        <Lock className="h-3 w-3 mr-1" /> Locked
+                        <LockIcon className="h-3 w-3 mr-1" /> Locked
                       </span>
                     )}
                   </CardFooter>

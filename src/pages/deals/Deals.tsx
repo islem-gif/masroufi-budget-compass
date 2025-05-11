@@ -26,7 +26,8 @@ const Deals = () => {
       matches = matches && (
         deal.title.toLowerCase().includes(searchLower) ||
         deal.description.toLowerCase().includes(searchLower) ||
-        deal.merchant.toLowerCase().includes(searchLower)
+        (deal.provider?.toLowerCase() || "").includes(searchLower) ||
+        (deal.merchant?.toLowerCase() || "").includes(searchLower)
       );
     }
     
@@ -96,7 +97,7 @@ const Deals = () => {
             <SelectContent>
               <SelectItem value="all">All Locations</SelectItem>
               {locations.map(location => (
-                <SelectItem key={location} value={location}>{location}</SelectItem>
+                location && <SelectItem key={location} value={location}>{location}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -164,7 +165,7 @@ const Deals = () => {
             {filteredDeals
               .filter(deal => {
                 // Filter deals ending within the next 7 days
-                const endDate = new Date(deal.validUntil);
+                const endDate = new Date(deal.validUntil || deal.expiryDate);
                 const now = new Date();
                 const daysLeft = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
                 return daysLeft <= 7 && daysLeft > 0;
@@ -196,7 +197,7 @@ interface DealCardProps {
 }
 
 const DealCard = ({ deal }: DealCardProps) => {
-  const endDate = new Date(deal.validUntil);
+  const endDate = new Date(deal.validUntil || deal.expiryDate);
   const now = new Date();
   const daysLeft = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
   
@@ -220,7 +221,7 @@ const DealCard = ({ deal }: DealCardProps) => {
           </Badge>
         </div>
         <CardDescription className="flex items-center justify-between">
-          <span>{deal.merchant}</span>
+          <span>{deal.merchant || deal.provider}</span>
           <span className="flex items-center gap-1">
             <MapPin className="h-3 w-3" /> {deal.location}
           </span>
@@ -244,7 +245,7 @@ const DealCard = ({ deal }: DealCardProps) => {
           </div>
         )}
         <Button variant="outline" size="sm" className="ml-auto" asChild>
-          <a href={deal.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+          <a href={deal.link || deal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
             <span>View Deal</span> <ExternalLink className="h-3 w-3" />
           </a>
         </Button>

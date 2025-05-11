@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +19,7 @@ const Goals = () => {
     name: '',
     targetAmount: 0,
     deadline: '',
+    icon: 'target',
     category: 'savings'
   });
   const [contribution, setContribution] = useState(0);
@@ -30,7 +30,7 @@ const Goals = () => {
         name: newGoal.name,
         targetAmount: newGoal.targetAmount,
         deadline: newGoal.deadline ? new Date(newGoal.deadline).toISOString() : '',
-        category: newGoal.category,
+        icon: newGoal.icon,
       });
       
       // Reset form and close dialog
@@ -38,6 +38,7 @@ const Goals = () => {
         name: '',
         targetAmount: 0,
         deadline: '',
+        icon: 'target',
         category: 'savings'
       });
       setNewGoalOpen(false);
@@ -179,9 +180,11 @@ const Goals = () => {
                       <Target className="h-5 w-5 text-masroufi-secondary" />
                       {goal.name}
                     </CardTitle>
-                    <Badge variant="outline" className="capitalize">
-                      {goal.category}
-                    </Badge>
+                    {goal.category && (
+                      <Badge variant="outline" className="capitalize">
+                        {goal.category}
+                      </Badge>
+                    )}
                   </div>
                   <CardDescription className="flex items-center gap-1">
                     {deadline && (

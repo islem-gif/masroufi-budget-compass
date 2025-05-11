@@ -47,6 +47,7 @@ export interface FinancialGoal {
   deadline: string;
   icon: string;
   userId: string;
+  category?: string; // Added missing property
 }
 
 export interface Notification {
@@ -68,4 +69,10 @@ export interface Deal {
   category: string;
   location?: string;
   url?: string;
+  merchant?: string; // Added missing property
+  featured?: boolean; // Added missing property
+  validUntil?: string; // Added missing property
+  image?: string; // Added for completeness
+  link?: string; // Added for completeness
+  couponCode?: string; // Added for completeness
 }
