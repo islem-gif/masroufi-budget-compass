@@ -185,82 +185,55 @@ export const toDbDeal = (appDeal: Deal): Omit<DealTable, 'created_at'> => ({
   coupon_code: appDeal.couponCode
 });
 
-// Basic CRUD operations for each entity
+// Basic CRUD operations placeholder
+// Note: These operations will be properly implemented once the tables are created in Supabase
 export const supabaseOperations = {
   // Users
   async getUser(userId: string) {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    
-    if (error) throw error;
-    return data ? toAppUser(data as unknown as UserTable) : null;
+    console.log('getUser called with ID:', userId);
+    // Will be implemented once tables are created
+    return null;
   },
 
   // Categories
   async getCategories(userId: string) {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (error) throw error;
-    return (data as unknown as CategoryTable[]).map(toAppCategory);
+    console.log('getCategories called for user:', userId);
+    // Will be implemented once tables are created
+    return [];
   },
 
   // Transactions
   async getTransactions(userId: string) {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (error) throw error;
-    return (data as unknown as TransactionTable[]).map(toAppTransaction);
+    console.log('getTransactions called for user:', userId);
+    // Will be implemented once tables are created
+    return [];
   },
 
   // Budgets
   async getBudgets(userId: string) {
-    const { data, error } = await supabase
-      .from('budgets')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (error) throw error;
-    return (data as unknown as BudgetTable[]).map(toAppBudget);
+    console.log('getBudgets called for user:', userId);
+    // Will be implemented once tables are created
+    return [];
   },
 
   // Goals
   async getGoals(userId: string) {
-    const { data, error } = await supabase
-      .from('financial_goals')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (error) throw error;
-    return (data as unknown as FinancialGoalTable[]).map(toAppFinancialGoal);
+    console.log('getGoals called for user:', userId);
+    // Will be implemented once tables are created
+    return [];
   },
 
   // Notifications
   async getNotifications(userId: string) {
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (error) throw error;
-    return (data as unknown as NotificationTable[]).map(toAppNotification);
+    console.log('getNotifications called for user:', userId);
+    // Will be implemented once tables are created
+    return [];
   },
 
   // Deals
   async getDeals() {
-    const { data, error } = await supabase
-      .from('deals')
-      .select('*');
-    
-    if (error) throw error;
-    return (data as unknown as DealTable[]).map(toAppDeal);
+    console.log('getDeals called');
+    // Will be implemented once tables are created
+    return [];
   }
 };
