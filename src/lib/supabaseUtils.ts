@@ -42,7 +42,7 @@ export const toDbUser = (appUser: User): Omit<UserTable, 'created_at' | 'updated
   phone: appUser.phone,
   avatar_url: appUser.avatar,
   dark_mode: appUser.darkMode,
-  language: appUser.language,
+  language: appUser.language as 'fr' | 'en', // Fix: Ensure language is typed as 'fr' | 'en'
   currency: appUser.currency
 });
 
