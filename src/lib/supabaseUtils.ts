@@ -200,7 +200,16 @@ export const supabaseOperations = {
       return null;
     }
     
-    return data ? toAppUser(data) : null;
+    // Fix: Add type assertion for user data to ensure language is correctly typed
+    if (data) {
+      const typedData = {
+        ...data,
+        language: data.language as 'fr' | 'en'
+      };
+      return toAppUser(typedData);
+    }
+    
+    return null;
   },
 
   // Categories
