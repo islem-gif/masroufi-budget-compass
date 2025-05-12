@@ -185,55 +185,110 @@ export const toDbDeal = (appDeal: Deal): Omit<DealTable, 'created_at'> => ({
   coupon_code: appDeal.couponCode
 });
 
-// Basic CRUD operations placeholder
-// Note: These operations will be properly implemented once the tables are created in Supabase
+// Implement CRUD operations using Supabase
 export const supabaseOperations = {
   // Users
   async getUser(userId: string) {
-    console.log('getUser called with ID:', userId);
-    // Will be implemented once tables are created
-    return null;
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+      
+    if (error) {
+      console.error('Error fetching user:', error);
+      return null;
+    }
+    
+    return data ? toAppUser(data) : null;
   },
 
   // Categories
   async getCategories(userId: string) {
-    console.log('getCategories called for user:', userId);
-    // Will be implemented once tables are created
-    return [];
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (error) {
+      console.error('Error fetching categories:', error);
+      return [];
+    }
+    
+    return data ? data.map(toAppCategory) : [];
   },
 
   // Transactions
   async getTransactions(userId: string) {
-    console.log('getTransactions called for user:', userId);
-    // Will be implemented once tables are created
-    return [];
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (error) {
+      console.error('Error fetching transactions:', error);
+      return [];
+    }
+    
+    return data ? data.map(toAppTransaction) : [];
   },
 
   // Budgets
   async getBudgets(userId: string) {
-    console.log('getBudgets called for user:', userId);
-    // Will be implemented once tables are created
-    return [];
+    const { data, error } = await supabase
+      .from('budgets')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (error) {
+      console.error('Error fetching budgets:', error);
+      return [];
+    }
+    
+    return data ? data.map(toAppBudget) : [];
   },
 
   // Goals
   async getGoals(userId: string) {
-    console.log('getGoals called for user:', userId);
-    // Will be implemented once tables are created
-    return [];
+    const { data, error } = await supabase
+      .from('financial_goals')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (error) {
+      console.error('Error fetching goals:', error);
+      return [];
+    }
+    
+    return data ? data.map(toAppFinancialGoal) : [];
   },
 
   // Notifications
   async getNotifications(userId: string) {
-    console.log('getNotifications called for user:', userId);
-    // Will be implemented once tables are created
-    return [];
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId);
+      
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      return [];
+    }
+    
+    return data ? data.map(toAppNotification) : [];
   },
 
   // Deals
   async getDeals() {
-    console.log('getDeals called');
-    // Will be implemented once tables are created
-    return [];
+    const { data, error } = await supabase
+      .from('deals')
+      .select('*');
+      
+    if (error) {
+      console.error('Error fetching deals:', error);
+      return [];
+    }
+    
+    return data ? data.map(toAppDeal) : [];
   }
 };
