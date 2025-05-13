@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useMasroufi } from '@/lib/MasroufiContext';
-import { Calendar, MapPin, Share, External, User, Wallet } from 'lucide-react';
+import { Calendar, MapPin, Share, ExternalLink, User, Wallet } from 'lucide-react';
 
 const DealDetail = () => {
   const { id } = useParams();
@@ -115,7 +115,7 @@ const DealDetail = () => {
           <CardFooter className="flex justify-between">
             <Button variant="outline" asChild>
               <a href={deal.link || deal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-                Visit website <External className="h-4 w-4" />
+                Visit website <ExternalLink className="h-4 w-4" />
               </a>
             </Button>
             
