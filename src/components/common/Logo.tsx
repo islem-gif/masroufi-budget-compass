@@ -28,7 +28,7 @@ const Logo = ({ size = 'md', variant = 'default' }: LogoProps) => {
   if (variant === 'simple') {
     return (
       <div className={`${sizeClasses[size].container} flex items-center justify-center`}>
-        <img src="/lovable-uploads/2ed10436-0962-43ca-a505-48831c9b0a7b.png" alt="Masroufi Logo" className="h-full w-auto" />
+        <img src="/lovable-uploads/cf8af45a-72bc-40af-8161-3bae1274fbfa.png" alt="Masroufi Logo" className="h-full w-auto" />
       </div>
     );
   }
@@ -36,7 +36,7 @@ const Logo = ({ size = 'md', variant = 'default' }: LogoProps) => {
   return (
     <div className="flex items-center space-x-2">
       <div className={`${sizeClasses[size].container} flex items-center justify-center`}>
-        <img src="/lovable-uploads/2ed10436-0962-43ca-a505-48831c9b0a7b.png" alt="Masroufi Logo" className="h-full w-auto" />
+        <img src="/lovable-uploads/cf8af45a-72bc-40af-8161-3bae1274fbfa.png" alt="Masroufi Logo" className="h-full w-auto" />
       </div>
       <h1 className={`${sizeClasses[size].fullText} font-bold text-masroufi-primary`}>Masroufi</h1>
     </div>
