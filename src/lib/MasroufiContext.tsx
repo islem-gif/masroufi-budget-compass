@@ -41,9 +41,11 @@ interface MasroufiContextType {
   changeCurrency: (currency: string) => void;
 }
 
+// Create context with a default undefined value
 const MasroufiContext = createContext<MasroufiContextType | undefined>(undefined);
 
-export const MasroufiProvider = ({ children }: { children: ReactNode }) => {
+// Define the provider component as a React functional component
+export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Modifier le mockUser pour utiliser TND par défaut
   const modifiedMockUser = {...mockUser, currency: 'TND'};
   

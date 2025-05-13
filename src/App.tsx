@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,37 +25,39 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <MasroufiProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/intro" />} />
-            <Route path="/intro" element={<Intro />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route element={<MainLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/transactions/add" element={<AddTransaction />} />
-              <Route path="/budget" element={<Budget />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/goals" element={<Goals />} />
-              <Route path="/family" element={<Family />} />
-              <Route path="/deals" element={<Deals />} />
-              <Route path="/deals/:id" element={<DealDetail />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/challenges" element={<Challenges />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </MasroufiProvider>
-  </QueryClientProvider>
+const App: React.FC = () => (
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <MasroufiProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/intro" />} />
+              <Route path="/intro" element={<Intro />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route element={<MainLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/transactions" element={<Transactions />} />
+                <Route path="/transactions/add" element={<AddTransaction />} />
+                <Route path="/budget" element={<Budget />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/goals" element={<Goals />} />
+                <Route path="/family" element={<Family />} />
+                <Route path="/deals" element={<Deals />} />
+                <Route path="/deals/:id" element={<DealDetail />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/challenges" element={<Challenges />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </MasroufiProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
 );
 
 export default App;
