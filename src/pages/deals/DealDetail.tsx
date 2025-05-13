@@ -12,24 +12,39 @@ const DealDetail = () => {
   const { deals } = useMasroufi();
   const navigate = useNavigate();
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(true);
   
   const deal = deals.find(d => d.id === id);
   
   useEffect(() => {
-    // Generate QR code using a placeholder service
-    // In a real app, this would be handled server-side
-    if (deal?.couponCode) {
-      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(deal.couponCode)}`;
-      setQrCode(qrCodeUrl);
-    }
+    const generateQrCode = async () => {
+      if (deal?.couponCode) {
+        setQrLoading(true);
+        try {
+          // Générer le code QR en utilisant un service gratuit
+          const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(deal.couponCode)}`;
+          setQrCode(qrCodeUrl);
+        } catch (error) {
+          console.error("Erreur lors de la génération du code QR:", error);
+          setQrCode(null);
+        } finally {
+          setQrLoading(false);
+        }
+      } else {
+        setQrCode(null);
+        setQrLoading(false);
+      }
+    };
+    
+    generateQrCode();
   }, [deal]);
   
   if (!deal) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <h2 className="text-xl font-semibold mb-2">Deal not found</h2>
-        <p className="text-muted-foreground mb-6">The deal you're looking for doesn't exist or has expired.</p>
-        <Button onClick={() => navigate('/deals')}>Back to deals</Button>
+        <h2 className="text-xl font-semibold mb-2">Offre non trouvée</h2>
+        <p className="text-muted-foreground mb-6">L'offre que vous recherchez n'existe pas ou a expiré.</p>
+        <Button onClick={() => navigate('/deals')}>Retour aux offres</Button>
       </div>
     );
   }
@@ -46,7 +61,7 @@ const DealDetail = () => {
         className="mb-6"
         onClick={() => navigate('/deals')}
       >
-        Back to deals
+        Retour aux offres
       </Button>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -58,7 +73,7 @@ const DealDetail = () => {
             }}
           >
             {deal.featured && (
-              <Badge className="m-2 bg-yellow-500">Featured</Badge>
+              <Badge className="m-2 bg-yellow-500">En vedette</Badge>
             )}
           </div>
           
@@ -88,26 +103,26 @@ const DealDetail = () => {
                 <Calendar className="h-4 w-4" />
                 <span>
                   {isExpired ? (
-                    <span className="text-red-500">Expired</span>
+                    <span className="text-red-500">Expiré</span>
                   ) : (
-                    `Valid until ${endDate.toLocaleDateString()}`
+                    `Valable jusqu'au ${endDate.toLocaleDateString()}`
                   )}
                 </span>
               </div>
               
               <Button variant="outline" size="sm" className="flex items-center gap-1">
                 <Share className="h-4 w-4" />
-                <span>Share</span>
+                <span>Partager</span>
               </Button>
             </div>
             
             <div>
-              <h3 className="font-semibold mb-2">Terms & Conditions</h3>
+              <h3 className="font-semibold mb-2">Conditions générales</h3>
               <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                <li>This offer cannot be combined with other promotions.</li>
-                <li>Valid for students with valid ID only.</li>
-                <li>Limited to one redemption per person.</li>
-                <li>The merchant reserves the right to modify or cancel the promotion.</li>
+                <li>Cette offre ne peut pas être combinée avec d'autres promotions.</li>
+                <li>Valable uniquement pour les étudiants avec une carte d'identité valide.</li>
+                <li>Limité à un usage par personne.</li>
+                <li>Le marchand se réserve le droit de modifier ou d'annuler la promotion.</li>
               </ul>
             </div>
           </CardContent>
@@ -115,21 +130,21 @@ const DealDetail = () => {
           <CardFooter className="flex justify-between">
             <Button variant="outline" asChild>
               <a href={deal.link || deal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-                Visit website <ExternalLink className="h-4 w-4" />
+                Visiter le site <ExternalLink className="h-4 w-4" />
               </a>
             </Button>
             
             {!isExpired && (
-              <Button>Redeem Now</Button>
+              <Button>Utiliser maintenant</Button>
             )}
           </CardFooter>
         </Card>
         
         <Card>
           <CardHeader>
-            <CardTitle>Discount Code</CardTitle>
+            <CardTitle>Code de réduction</CardTitle>
             <CardDescription>
-              Use this coupon code or show the QR code at checkout
+              Utilisez ce code promo ou présentez le QR code à la caisse
             </CardDescription>
           </CardHeader>
           
@@ -141,24 +156,38 @@ const DealDetail = () => {
                 </div>
                 
                 <div className="flex flex-col items-center">
-                  {qrCode ? (
+                  {qrLoading ? (
+                    <div className="animate-pulse bg-slate-200 dark:bg-slate-700 w-[200px] h-[200px] rounded-md"></div>
+                  ) : qrCode ? (
                     <div className="p-4 bg-white rounded-md">
-                      <img src={qrCode} alt="QR Code" width={200} height={200} />
+                      <img 
+                        src={qrCode} 
+                        alt="Code QR" 
+                        width={200} 
+                        height={200} 
+                        className="w-[200px] h-[200px]"
+                        onError={() => {
+                          console.error("Erreur lors du chargement de l'image QR");
+                          setQrCode(null);
+                        }}
+                      />
                     </div>
                   ) : (
-                    <div className="animate-pulse bg-slate-200 dark:bg-slate-700 w-[200px] h-[200px] rounded-md"></div>
+                    <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-md text-center w-[200px] h-[200px] flex items-center justify-center">
+                      <p className="text-sm text-muted-foreground">Impossible de générer le code QR</p>
+                    </div>
                   )}
-                  <p className="text-sm text-center mt-2 text-muted-foreground">Scan this QR code to redeem</p>
+                  <p className="text-sm text-center mt-2 text-muted-foreground">Scannez ce QR code pour utiliser l'offre</p>
                 </div>
               </>
             )}
             
             <div className="border-t pt-4">
-              <h3 className="font-semibold mb-2">How to redeem</h3>
+              <h3 className="font-semibold mb-2">Comment utiliser</h3>
               <ol className="list-decimal pl-5 space-y-1 text-sm">
-                <li>Show this screen to the cashier</li>
-                <li>Let them scan the QR code or enter the coupon code</li>
-                <li>Verify the discount has been applied before paying</li>
+                <li>Présentez cet écran au caissier</li>
+                <li>Laissez-les scanner le code QR ou entrer le code de réduction</li>
+                <li>Vérifiez que la remise a été appliquée avant de payer</li>
               </ol>
             </div>
           </CardContent>
@@ -166,11 +195,11 @@ const DealDetail = () => {
           <CardFooter className="flex-col gap-4">
             <div className="flex items-center gap-2 text-sm w-full">
               <User className="h-4 w-4 text-muted-foreground" />
-              <span>Available for student accounts</span>
+              <span>Disponible pour les comptes étudiants</span>
             </div>
             <div className="flex items-center gap-2 text-sm w-full">
               <Wallet className="h-4 w-4 text-muted-foreground" />
-              <span>Average savings: {deal.discount}</span>
+              <span>Économie moyenne: {deal.discount}</span>
             </div>
           </CardFooter>
         </Card>
