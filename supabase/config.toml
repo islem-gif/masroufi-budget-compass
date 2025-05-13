@@ -1,1 +1,5 @@
+
 project_id = "rzyvsgcwntzoejtasvqa"
+
+[functions.send-family-invitation]
+verify_jwt = true

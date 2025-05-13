@@ -18,6 +18,7 @@ import Reports from "@/pages/reports/Reports";
 import Goals from "@/pages/goals/Goals";
 import Family from "@/pages/family/Family";
 import Deals from "@/pages/deals/Deals";
+import DealDetail from "@/pages/deals/DealDetail";
 import Settings from "@/pages/settings/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/goals" element={<Goals />} />
               <Route path="/family" element={<Family />} />
               <Route path="/deals" element={<Deals />} />
+              <Route path="/deals/:id" element={<DealDetail />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/challenges" element={<Challenges />} />
             </Route>

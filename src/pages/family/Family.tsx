@@ -1,16 +1,16 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Users, Send, Eye, EyeOff, Lock, ShieldCheck, DollarSign } from "lucide-react";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import InviteMemberDialog from "./InviteMemberDialog";
+import TransferDialog from "./TransferDialog";
 
 // Mock family members for UI demonstration
 const mockFamilyMembers = [
@@ -68,37 +68,9 @@ const mockFamilyTransactions = [
 ];
 
 const Family = () => {
-  const { toast } = useToast();
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [transferAmount, setTransferAmount] = useState<number>(0);
-  const [transferNote, setTransferNote] = useState("");
   const [selectedMemberId, setSelectedMemberId] = useState("");
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
-  
-  const handleInviteMember = () => {
-    if (inviteEmail) {
-      toast({
-        title: "Invitation Sent",
-        description: `An invitation has been sent to ${inviteEmail}`,
-      });
-      setInviteEmail("");
-      setShowInviteDialog(false);
-    }
-  };
-  
-  const handleTransfer = () => {
-    if (selectedMemberId && transferAmount > 0) {
-      const memberName = mockFamilyMembers.find(m => m.id === selectedMemberId)?.name;
-      toast({
-        title: "Transfer Complete",
-        description: `Successfully sent ${transferAmount} TND to ${memberName}`,
-      });
-      setTransferAmount(0);
-      setTransferNote("");
-      setShowTransferDialog(false);
-    }
-  };
   
   const startTransfer = (memberId: string) => {
     setSelectedMemberId(memberId);
@@ -114,105 +86,13 @@ const Family = () => {
         </div>
         
         <div className="flex gap-2">
-          <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Plus className="h-4 w-4 mr-2" /> Invite Family Member
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Invite Family Member</DialogTitle>
-                <DialogDescription>
-                  Send an invitation to connect family accounts for shared financial management.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email address</Label>
-                  <Input 
-                    id="email" 
-                    placeholder="example@email.com" 
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label>Member Role</Label>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center space-x-2">
-                      <input type="radio" id="role-parent" name="role" defaultChecked />
-                      <Label htmlFor="role-parent">Parent/Guardian</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="radio" id="role-child" name="role" />
-                      <Label htmlFor="role-child">Child</Label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowInviteDialog(false)}>Cancel</Button>
-                <Button onClick={handleInviteMember}>Send Invitation</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button variant="outline" onClick={() => setShowInviteDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Invite Family Member
+          </Button>
           
-          <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Send className="h-4 w-4 mr-2" /> Transfer Money
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Transfer Money</DialogTitle>
-                <DialogDescription>
-                  Send money to a family member.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="member">Family Member</Label>
-                  <select 
-                    id="member"
-                    className="w-full p-2 border rounded-md"
-                    value={selectedMemberId}
-                    onChange={(e) => setSelectedMemberId(e.target.value)}
-                  >
-                    <option value="" disabled>Select Family Member</option>
-                    {mockFamilyMembers.map(member => (
-                      <option key={member.id} value={member.id}>{member.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="amount">Amount (TND)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="100"
-                    value={transferAmount || ''}
-                    onChange={(e) => setTransferAmount(Number(e.target.value))}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="note">Note (Optional)</Label>
-                  <Input
-                    id="note"
-                    placeholder="Allowance for this week"
-                    value={transferNote}
-                    onChange={(e) => setTransferNote(e.target.value)}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowTransferDialog(false)}>Cancel</Button>
-                <Button onClick={handleTransfer}>Transfer</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setShowTransferDialog(true)}>
+            <Send className="h-4 w-4 mr-2" /> Transfer Money
+          </Button>
         </div>
       </div>
       
@@ -403,6 +283,18 @@ const Family = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Dialogues */}
+      <InviteMemberDialog 
+        open={showInviteDialog} 
+        onOpenChange={setShowInviteDialog} 
+      />
+      
+      <TransferDialog 
+        open={showTransferDialog} 
+        onOpenChange={setShowTransferDialog}
+        memberId={selectedMemberId} 
+      />
     </div>
   );
 };

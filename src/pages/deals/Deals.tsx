@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMasroufi } from "@/lib/MasroufiContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { ShoppingBag, MapPin, Search, Calendar, ExternalLink, Star, Filter } fro
 
 const Deals = () => {
   const { user, deals } = useMasroufi();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -197,6 +199,7 @@ interface DealCardProps {
 }
 
 const DealCard = ({ deal }: DealCardProps) => {
+  const navigate = useNavigate();
   const endDate = new Date(deal.validUntil || deal.expiryDate);
   const now = new Date();
   const daysLeft = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
@@ -244,10 +247,13 @@ const DealCard = ({ deal }: DealCardProps) => {
             {deal.couponCode}
           </div>
         )}
-        <Button variant="outline" size="sm" className="ml-auto" asChild>
-          <a href={deal.link || deal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-            <span>View Deal</span> <ExternalLink className="h-3 w-3" />
-          </a>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="ml-auto" 
+          onClick={() => navigate(`/deals/${deal.id}`)}
+        >
+          <span>View Deal</span> <ExternalLink className="h-3 w-3 ml-1" />
         </Button>
       </CardFooter>
     </Card>

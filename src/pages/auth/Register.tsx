@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { useToast } from '@/hooks/use-toast';
+import { Mail } from 'lucide-react';
 
 const Register = () => {
   const [firstName, setFirstName] = useState('');
@@ -16,6 +17,7 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const { registerUser } = useMasroufi();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -37,24 +39,55 @@ const Register = () => {
     try {
       // For demo purposes, we'll just call our context method
       // In a real app, this would register with a backend API
-      registerUser(email, password, firstName, lastName);
+      await registerUser(email, password, firstName, lastName);
+      
+      // Set emailSent to true to show the success message
+      setEmailSent(true);
       
       toast({
         title: "Registration successful!",
-        description: "Welcome to Masroufi.",
+        description: "Please check your email to verify your account.",
       });
-      
-      navigate('/dashboard');
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Registration failed",
         description: "Please check your details and try again.",
       });
-    } finally {
       setIsLoading(false);
     }
   };
+
+  if (emailSent) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <div className="mx-auto rounded-full bg-green-100 p-3 mb-4">
+              <Mail className="h-6 w-6 text-green-600" />
+            </div>
+            <CardTitle className="text-center">Verify your email</CardTitle>
+            <CardDescription className="text-center">
+              We've sent a verification email to <span className="font-medium">{email}</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center text-muted-foreground">
+            <p>Please check your inbox and click on the verification link to complete your registration.</p>
+            <p className="mt-2">If you don't see the email, check your spam folder.</p>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
+            <Button 
+              onClick={() => navigate('/login')}
+              className="w-full"
+              variant="outline"
+            >
+              Back to login
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
@@ -135,6 +168,10 @@ const Register = () => {
                   onChange={e => setConfirmPassword(e.target.value)}
                   required
                 />
+              </div>
+              
+              <div className="text-sm text-muted-foreground">
+                By registering, you agree to our terms and conditions. An email verification will be sent to confirm your account.
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
