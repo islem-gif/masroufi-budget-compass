@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { Calendar, MapPin, Share, ExternalLink, User, Wallet } from 'lucide-react';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 const DealDetail = () => {
   const { id } = useParams();
@@ -21,9 +22,16 @@ const DealDetail = () => {
       if (deal?.couponCode) {
         setQrLoading(true);
         try {
-          // Générer le code QR en utilisant un service gratuit
-          const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(deal.couponCode)}`;
-          setQrCode(qrCodeUrl);
+          // Générer le code QR en utilisant un service fiable avec HTTPS
+          const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(deal.couponCode)}&format=png`;
+          
+          // Vérifier si l'URL est accessible
+          const response = await fetch(qrCodeUrl, { method: 'HEAD' });
+          if (response.ok) {
+            setQrCode(qrCodeUrl);
+          } else {
+            throw new Error("Impossible de générer le code QR");
+          }
         } catch (error) {
           console.error("Erreur lors de la génération du code QR:", error);
           setQrCode(null);
@@ -160,17 +168,17 @@ const DealDetail = () => {
                     <div className="animate-pulse bg-slate-200 dark:bg-slate-700 w-[200px] h-[200px] rounded-md"></div>
                   ) : qrCode ? (
                     <div className="p-4 bg-white rounded-md">
-                      <img 
-                        src={qrCode} 
-                        alt="Code QR" 
-                        width={200} 
-                        height={200} 
-                        className="w-[200px] h-[200px]"
-                        onError={() => {
-                          console.error("Erreur lors du chargement de l'image QR");
-                          setQrCode(null);
-                        }}
-                      />
+                      <AspectRatio ratio={1} className="w-[200px] h-[200px] relative">
+                        <img 
+                          src={qrCode} 
+                          alt="Code QR" 
+                          className="w-full h-full object-contain rounded-md"
+                          onError={() => {
+                            console.error("Erreur lors du chargement de l'image QR");
+                            setQrCode(null);
+                          }}
+                        />
+                      </AspectRatio>
                     </div>
                   ) : (
                     <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-md text-center w-[200px] h-[200px] flex items-center justify-center">

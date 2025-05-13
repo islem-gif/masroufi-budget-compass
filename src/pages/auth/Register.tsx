@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { useToast } from '@/hooks/use-toast';
 import { Mail } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Register = () => {
   const [firstName, setFirstName] = useState('');
@@ -28,8 +29,8 @@ const Register = () => {
     if (password !== confirmPassword) {
       toast({
         variant: "destructive",
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match.",
+        title: "Les mots de passe ne correspondent pas",
+        description: "Veuillez vous assurer que vos mots de passe correspondent.",
       });
       return;
     }
@@ -37,22 +38,50 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // For demo purposes, we'll just call our context method
-      // In a real app, this would register with a backend API
-      await registerUser(email, password, firstName, lastName);
+      // Connecter avec Supabase pour l'inscription
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            phone: phone || null
+          },
+          emailRedirectTo: `${window.location.origin}/login`
+        }
+      });
       
-      // Set emailSent to true to show the success message
+      if (error) throw error;
+
+      // Si l'inscription est réussie, enregistrer l'utilisateur localement aussi
+      if (data.user) {
+        await registerUser(email, password, firstName, lastName);
+      }
+      
+      // Définir emailSent à true pour afficher le message de succès
       setEmailSent(true);
       
       toast({
-        title: "Registration successful!",
-        description: "Please check your email to verify your account.",
+        title: "Inscription réussie!",
+        description: "Veuillez vérifier votre e-mail pour confirmer votre compte.",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      
+      let errorMessage = "Veuillez vérifier vos informations et réessayer.";
+      
+      // Messages d'erreur plus spécifiques basés sur le code d'erreur de Supabase
+      if (error.message?.includes('email') || error.message?.includes('Email')) {
+        errorMessage = "Cet e-mail est déjà utilisé ou n'est pas valide.";
+      } else if (error.message?.includes('password')) {
+        errorMessage = "Le mot de passe doit comporter au moins 6 caractères.";
+      }
+      
       toast({
         variant: "destructive",
-        title: "Registration failed",
-        description: "Please check your details and try again.",
+        title: "Échec de l'inscription",
+        description: errorMessage,
       });
       setIsLoading(false);
     }
@@ -66,14 +95,14 @@ const Register = () => {
             <div className="mx-auto rounded-full bg-green-100 p-3 mb-4">
               <Mail className="h-6 w-6 text-green-600" />
             </div>
-            <CardTitle className="text-center">Verify your email</CardTitle>
+            <CardTitle className="text-center">Vérifiez votre e-mail</CardTitle>
             <CardDescription className="text-center">
-              We've sent a verification email to <span className="font-medium">{email}</span>
+              Nous avons envoyé un e-mail de vérification à <span className="font-medium">{email}</span>
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center text-muted-foreground">
-            <p>Please check your inbox and click on the verification link to complete your registration.</p>
-            <p className="mt-2">If you don't see the email, check your spam folder.</p>
+            <p>Veuillez vérifier votre boîte de réception et cliquer sur le lien de vérification pour compléter votre inscription.</p>
+            <p className="mt-2">Si vous ne voyez pas l'e-mail, vérifiez votre dossier spam.</p>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button 
@@ -81,7 +110,7 @@ const Register = () => {
               className="w-full"
               variant="outline"
             >
-              Back to login
+              Retour à la connexion
             </Button>
           </CardFooter>
         </Card>

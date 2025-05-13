@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -21,21 +22,76 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // For demo purposes, we'll just call our context method
-      // In a real app, this would validate with a backend API
-      loginUser(email, password);
-      
-      toast({
-        title: "Login successful!",
-        description: "Welcome back to Masroufi.",
+      // Connecter avec Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
       
-      navigate('/dashboard');
-    } catch (error) {
+      if (error) throw error;
+      
+      // Si la connexion est réussie, connecter l'utilisateur localement aussi
+      if (data.user) {
+        loginUser(email, password);
+        
+        toast({
+          title: "Connexion réussie!",
+          description: "Bienvenue sur Masroufi.",
+        });
+        
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      
+      let errorMessage = "Veuillez vérifier vos identifiants et réessayer.";
+      
+      // Messages d'erreur plus spécifiques
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = "E-mail ou mot de passe incorrect.";
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = "Veuillez confirmer votre e-mail avant de vous connecter.";
+      }
+      
       toast({
         variant: "destructive",
-        title: "Login failed",
-        description: "Please check your credentials and try again.",
+        title: "Échec de la connexion",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      toast({
+        variant: "destructive",
+        title: "E-mail requis",
+        description: "Veuillez entrer votre adresse e-mail pour réinitialiser votre mot de passe.",
+      });
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "E-mail envoyé",
+        description: "Vérifiez votre e-mail pour les instructions de réinitialisation du mot de passe.",
+      });
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      toast({
+        variant: "destructive",
+        title: "Échec de la réinitialisation",
+        description: error.message || "Une erreur s'est produite. Veuillez réessayer.",
       });
     } finally {
       setIsLoading(false);
@@ -47,29 +103,29 @@ const Login = () => {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-masroufi-primary">Masroufi</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Your personal budget compass</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Votre compas budgétaire personnel</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Log in to your account</CardTitle>
-            <CardDescription>Enter your email and password to access your budget dashboard</CardDescription>
+            <CardTitle>Connectez-vous à votre compte</CardTitle>
+            <CardDescription>Entrez votre e-mail et mot de passe pour accéder à votre tableau de bord</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">E-mail</Label>
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="your@email.com" 
+                  placeholder="votre@email.com" 
                   value={email} 
                   onChange={e => setEmail(e.target.value)}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Mot de passe</Label>
                 <Input 
                   id="password" 
                   type="password" 
@@ -80,9 +136,13 @@ const Login = () => {
                 />
               </div>
               <div className="text-sm text-right">
-                <a href="#" className="text-masroufi-secondary hover:underline">
-                  Forgot password?
-                </a>
+                <button 
+                  type="button" 
+                  onClick={handleResetPassword} 
+                  className="text-masroufi-secondary hover:underline"
+                >
+                  Mot de passe oublié?
+                </button>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
@@ -91,10 +151,10 @@ const Login = () => {
                 className="w-full bg-masroufi-primary hover:bg-masroufi-primary/90" 
                 disabled={isLoading}
               >
-                {isLoading ? 'Logging in...' : 'Log in'}
+                {isLoading ? 'Connexion en cours...' : 'Se connecter'}
               </Button>
               <div className="text-center text-sm">
-                Don't have an account?{" "}
+                Vous n'avez pas de compte?{" "}
                 <a 
                   href="/register" 
                   className="text-masroufi-secondary hover:underline"
@@ -103,7 +163,7 @@ const Login = () => {
                     navigate('/register');
                   }}
                 >
-                  Sign up
+                  S'inscrire
                 </a>
               </div>
             </CardFooter>
