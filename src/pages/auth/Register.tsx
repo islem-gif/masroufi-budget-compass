@@ -8,7 +8,7 @@ import { useMasroufi } from '@/lib/MasroufiContext';
 import { useToast } from '@/hooks/use-toast';
 import { Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { Logo } from '@/components/ui/logo';
+import Logo from '@/components/common/Logo';
 
 const Register = () => {
   const [firstName, setFirstName] = useState('');
