@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { 
   User, 
@@ -63,42 +62,41 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   
   // Écouter les changements d'état d'authentification
   useEffect(() => {
-    // Configurer les listeners avant de vérifier la session existante
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session && session.user) {
-          // Utilisateur connecté
-          try {
-            // Récupérer les informations utilisateur depuis notre table custom
-            let userData = await supabaseOperations.getUser(session.user.id);
-            
-            if (userData) {
-              setUser(userData);
-              setIsAuthenticated(true);
+    const setupAuth = async () => {
+      // Configurer les listeners avant de vérifier la session existante
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          console.log("Auth state changed:", event, session?.user?.id);
+          
+          if (session && session.user) {
+            // Utilisateur connecté
+            try {
+              // Récupérer les informations utilisateur depuis notre table custom
+              let userData = await supabaseOperations.getUser(session.user.id);
               
-              // Charger les données de l'utilisateur
-              loadUserData(session.user.id);
-            } else {
-              // Créer l'utilisateur si c'est la première connexion
-              const { data: profile } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              
-              if (!profile) {
-                // En dev, utiliser les données mock pour un nouvel utilisateur
+              if (userData) {
+                console.log("User data retrieved:", userData);
+                setUser(userData);
+                setIsAuthenticated(true);
+                
+                // Charger les données de l'utilisateur
+                loadUserData(session.user.id);
+              } else {
+                console.log("Creating new user profile");
+                // Créer l'utilisateur si c'est la première connexion
                 const newUser: User = {
                   id: session.user.id,
                   email: session.user.email || 'user@example.com', 
-                  firstName: session.user.user_metadata.first_name || 'New',
-                  lastName: session.user.user_metadata.last_name || 'User',
+                  firstName: session.user.user_metadata?.first_name || 'New',
+                  lastName: session.user.user_metadata?.last_name || 'User',
                   darkMode: false,
                   language: 'fr',
                   currency: 'TND',
-                  phone: session.user.phone || undefined,
-                  avatar: session.user.user_metadata.avatar_url
+                  phone: session.user.phone || session.user.user_metadata?.phone || undefined,
+                  avatar: session.user.user_metadata?.avatar_url
                 };
+                
+                console.log("New user data to create:", newUser);
                 
                 // Sauvegarder le nouvel utilisateur
                 await supabaseOperations.createUser(newUser, session.user.id);
@@ -108,34 +106,33 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
                 // Initialiser des catégories de base pour le nouvel utilisateur
                 initializeUserData(session.user.id);
               }
+            } catch (error) {
+              console.error("Erreur lors du chargement des données utilisateur:", error);
+              setUser(null);
+              setIsAuthenticated(false);
             }
-          } catch (error) {
-            console.error("Erreur lors du chargement des données utilisateur:", error);
+          } else {
+            // Utilisateur déconnecté
             setUser(null);
             setIsAuthenticated(false);
+            resetData();
           }
-        } else {
-          // Utilisateur déconnecté
-          setUser(null);
-          setIsAuthenticated(false);
-          resetData();
         }
-      }
-    );
+      );
+      
+      // Vérifier la session existante
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Current session check:", session?.user?.id);
+      // Ne pas traiter la session ici, le authStateChange ci-dessus va s'en charger
+    };
     
-    // Vérifier la session existante
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && session.user) {
-        // Ne rien faire ici, le authStateChange ci-dessus va gérer cela
-      }
-    });
+    setupAuth();
     
     // Charger les deals pour tous les utilisateurs (même non connectés)
     loadDeals();
     
-    return () => {
-      subscription.unsubscribe();
-    };
+    // Pas besoin de désabonnement car setupAuth est une fonction asynchrone
+    // qui gère elle-même l'abonnement et le désabonnement
   }, []);
   
   // Charger les données de l'utilisateur depuis Supabase

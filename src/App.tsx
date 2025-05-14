@@ -19,17 +19,21 @@ import Intro from './pages/Intro';
 import Family from './pages/family/Family';
 import Challenges from './pages/gamification/Challenges';
 import Assistant from './pages/assistant/Assistant';
+import PrivateRoute from './components/auth/PrivateRoute';
 import './App.css';
 
 function App() {
   return (
     <MasroufiProvider>
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Intro />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/" element={<MainLayout />}>
+        
+        {/* Protected routes */}
+        <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="transactions" element={<Transactions />} />
           <Route path="transactions/add" element={<AddTransaction />} />

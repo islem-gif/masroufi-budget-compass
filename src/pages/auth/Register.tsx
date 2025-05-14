@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +39,7 @@ const Register = () => {
     setIsLoading(true);
 
     try {
+      console.log("Attempting to register with:", email, firstName, lastName);
       // Connecter avec Supabase pour l'inscription
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -53,6 +55,8 @@ const Register = () => {
       });
       
       if (error) throw error;
+      
+      console.log("Registration successful, user data:", data.user);
 
       // Si l'inscription est réussie, enregistrer l'utilisateur localement aussi
       if (data.user) {
@@ -119,38 +123,40 @@ const Register = () => {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-purple-400 to-pink-500 p-4">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-indigo-400 to-purple-500 p-4">
       <div className="w-full max-w-md space-y-8 backdrop-blur-lg bg-white/30 p-8 rounded-2xl shadow-xl">
         <div className="text-center">
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-6">
             <Logo size="lg" variant="simple" />
           </div>
         </div>
 
         <Card className="bg-white/80 backdrop-blur-sm border-none shadow-lg">
           <CardHeader>
-            <CardTitle>Create your account</CardTitle>
-            <CardDescription>Enter your details to get started with Masroufi</CardDescription>
+            <CardTitle className="text-center">Créer un compte</CardTitle>
+            <CardDescription className="text-center">Entrez vos informations pour commencer</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName">Prénom</Label>
                   <Input 
                     id="firstName" 
                     value={firstName} 
                     onChange={e => setFirstName(e.target.value)}
                     required
+                    className="bg-white/70"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName">Nom</Label>
                   <Input 
                     id="lastName" 
                     value={lastName} 
                     onChange={e => setLastName(e.target.value)}
                     required
+                    className="bg-white/70"
                   />
                 </div>
               </div>
@@ -160,69 +166,73 @@ const Register = () => {
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="your@email.com" 
+                  placeholder="votre@email.com" 
                   value={email} 
                   onChange={e => setEmail(e.target.value)}
                   required
+                  className="bg-white/70"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone (optional)</Label>
+                <Label htmlFor="phone">Téléphone (optionnel)</Label>
                 <Input 
                   id="phone" 
                   type="tel" 
-                  placeholder="+212601020304" 
+                  placeholder="+21600000000" 
                   value={phone} 
                   onChange={e => setPhone(e.target.value)}
+                  className="bg-white/70"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Mot de passe</Label>
                 <Input 
                   id="password" 
                   type="password" 
                   value={password} 
                   onChange={e => setPassword(e.target.value)}
                   required
+                  className="bg-white/70"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
                 <Input 
                   id="confirmPassword" 
                   type="password" 
                   value={confirmPassword} 
                   onChange={e => setConfirmPassword(e.target.value)}
                   required
+                  className="bg-white/70"
                 />
               </div>
               
               <div className="text-sm text-muted-foreground">
-                By registering, you agree to our terms and conditions. An email verification will be sent to confirm your account.
+                En vous inscrivant, vous acceptez nos conditions d'utilisation. Un e-mail de vérification sera envoyé pour confirmer votre compte.
               </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button 
                 type="submit" 
-                className="w-full bg-masroufi-primary hover:bg-masroufi-primary/90" 
+                className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700" 
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating account...' : 'Create account'}
+                {isLoading ? 'Création en cours...' : 'Créer un compte'}
               </Button>
               <div className="text-center text-sm">
-                Already have an account?{" "}
+                Vous avez déjà un compte?{" "}
                 <a 
                   href="/login" 
-                  className="text-masroufi-secondary hover:underline"
+                  className="text-blue-600 hover:underline"
                   onClick={(e) => {
                     e.preventDefault();
                     navigate('/login');
                   }}
                 >
-                  Log in
+                  Se connecter
                 </a>
               </div>
             </CardFooter>
