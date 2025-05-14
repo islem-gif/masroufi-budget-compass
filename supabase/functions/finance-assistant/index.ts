@@ -18,12 +18,17 @@ serve(async (req) => {
   try {
     const { prompt, userContext } = await req.json();
     
+    // Vérifier que les paramètres requis sont présents
+    if (!prompt) {
+      throw new Error('Le paramètre "prompt" est requis');
+    }
+    
     // Create system message with context about financial assistant
-    const systemMessage = `You are a helpful financial assistant for the Masroufi budget app. 
-    Your purpose is to help users better understand their financial situation, 
-    provide advice on saving money, explain expense patterns, and give personalized financial guidance.
-    Be concise, practical, and friendly. Always focus on providing actionable advice.
-    Context about the user: ${userContext || 'No specific context provided'}`;
+    const systemMessage = `Tu es un assistant financier intelligent pour l'application Masroufi. 
+    Ton rôle est d'aider les utilisateurs à mieux comprendre leur situation financière, 
+    fournir des conseils pour économiser de l'argent, expliquer les tendances de dépenses, et donner des conseils financiers personnalisés.
+    Sois concis, pratique et amical. Concentre-toi toujours sur des conseils actionnables.
+    Contexte sur l'utilisateur: ${userContext || 'Aucun contexte spécifique fourni'}`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -45,7 +50,8 @@ serve(async (req) => {
     const data = await response.json();
     
     if (data.error) {
-      throw new Error(data.error.message || 'Error from OpenAI API');
+      console.error('Erreur OpenAI:', data.error);
+      throw new Error(data.error.message || 'Erreur lors de la génération de la réponse');
     }
     
     const generatedResponse = data.choices[0].message.content;
@@ -54,7 +60,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error in finance-assistant function:', error);
+    console.error('Erreur dans la fonction finance-assistant:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

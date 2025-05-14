@@ -5,7 +5,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, User, Send, Info } from 'lucide-react';
+import { Bot, User, Send, Info, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,7 +63,10 @@ const Assistant = () => {
         body: { prompt: prompt.trim(), userContext },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw error;
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -73,7 +76,7 @@ const Assistant = () => {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error calling AI assistant:', error);
       toast({
         variant: 'destructive',
@@ -99,7 +102,7 @@ const Assistant = () => {
   };
 
   const generateUserContext = () => {
-    if (!user) return "";
+    if (!user) return "Nouvel utilisateur sans données financières";
 
     // Calculate total expenses and incomes
     const expenseTotal = transactions
@@ -267,7 +270,7 @@ const Assistant = () => {
               className="shrink-0"
             >
               {isLoading ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Send className="h-4 w-4" />
               )}

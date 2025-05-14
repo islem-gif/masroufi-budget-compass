@@ -234,10 +234,8 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const loginUser = (email: string, password: string) => {
-    // La connexion est gérée par Supabase Auth dans le composant Login
-    // Cette fonction reste pour la compatibilité avec l'existant
-    setUser(modifiedMockUser);
-    setIsAuthenticated(true);
+    // Cette fonction est appelée après le succès de l'authentification Supabase
+    console.log("User logged in locally:", email);
   };
 
   const logoutUser = async () => {
