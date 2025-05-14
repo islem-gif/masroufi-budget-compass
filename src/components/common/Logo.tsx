@@ -1,3 +1,4 @@
+
 import React from 'react';
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -26,14 +27,16 @@ const Logo = ({
   };
   if (variant === 'simple') {
     return <div className={`${sizeClasses[size].container} flex items-center justify-center`}>
-        <img src="/lovable-uploads/cf8af45a-72bc-40af-8161-3bae1274fbfa.png" alt="Masroufi Logo" className="h-full w-auto" />
+        <img src="/lovable-uploads/d75e54f2-79d1-4cf3-8787-8f9c4f14b7df.png" alt="Masroufi Logo" className="h-full w-auto" />
       </div>;
   }
   return <div className="flex items-center space-x-2">
       <div className={`${sizeClasses[size].container} flex items-center justify-center`}>
-        <img src="/lovable-uploads/cf8af45a-72bc-40af-8161-3bae1274fbfa.png" alt="Masroufi Logo" className="h-full w-auto" />
+        <img src="/lovable-uploads/d75e54f2-79d1-4cf3-8787-8f9c4f14b7df.png" alt="Masroufi Logo" className="h-full w-auto" />
       </div>
-      
+      <div>
+        <span className={`font-bold ${sizeClasses[size].fullText} text-masroufi-primary`}>MASROUFI</span>
+      </div>
     </div>;
 };
 export default Logo;

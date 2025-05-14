@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import Logo from '@/components/common/Logo';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -102,7 +103,9 @@ const Login = () => {
     <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-masroufi-primary">Masroufi</h1>
+          <div className="flex justify-center mb-4">
+            <Logo size="lg" />
+          </div>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Votre compas budgétaire personnel</p>
         </div>
 

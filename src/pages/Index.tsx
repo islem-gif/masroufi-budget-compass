@@ -1,8 +1,8 @@
-
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { Button } from '@/components/ui/button';
+import Logo from '@/components/common/Logo';
 
 const Index = () => {
   const { isAuthenticated } = useMasroufi();
@@ -19,12 +19,12 @@ const Index = () => {
       {/* Hero Section */}
       <div className="flex-1 flex flex-col md:flex-row items-center justify-center px-6 py-12">
         <div className="w-full md:w-1/2 space-y-6 text-center md:text-left">
-          <h1 className="text-4xl md:text-5xl font-bold text-masroufi-primary">
-            Masroufi
-            <span className="block text-2xl md:text-3xl mt-2 text-masroufi-secondary">Your Budget Compass</span>
-          </h1>
+          <div className="flex md:justify-start justify-center mb-4">
+            <Logo size="lg" />
+          </div>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-lg">
-            Take control of your finances with our smart budgeting platform. Track expenses, set goals, and make informed financial decisions.
+            Prenez le contrôle de vos finances avec notre plateforme intelligente de budgétisation. 
+            Suivez vos dépenses, fixez des objectifs et prenez des décisions financières éclairées.
           </p>
           <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 justify-center md:justify-start">
             <Button 
@@ -32,14 +32,14 @@ const Index = () => {
               className="bg-masroufi-primary hover:bg-masroufi-primary/90" 
               onClick={() => navigate('/register')}
             >
-              Get Started
+              Commencer
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
               onClick={() => navigate('/login')}
             >
-              Log In
+              Se connecter
             </Button>
           </div>
         </div>
@@ -49,7 +49,7 @@ const Index = () => {
             <div className="absolute -bottom-8 -left-8 w-72 h-72 bg-masroufi-secondary/20 rounded-full filter blur-2xl opacity-70 animate-pulse"></div>
             <div className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
               <div className="px-8 pt-8 pb-2">
-                <h2 className="text-xl font-semibold text-center mb-6">Dashboard Preview</h2>
+                <h2 className="text-xl font-semibold text-center mb-6">Aperçu du tableau de bord</h2>
                 {/* Mock Dashboard UI */}
                 <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-4">
@@ -108,7 +108,7 @@ const Index = () => {
       {/* Features Section */}
       <div className="bg-white dark:bg-gray-800 py-16 px-6">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">Fonctionnalités principales</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
@@ -155,9 +155,9 @@ const Index = () => {
       {/* CTA Section */}
       <div className="bg-masroufi-primary py-16 px-6 text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to take control of your finances?</h2>
+          <h2 className="text-3xl font-bold mb-4">Prêt à prendre le contrôle de vos finances?</h2>
           <p className="text-lg mb-8 opacity-90">
-            Join thousands of users who have improved their financial habits with Masroufi.
+            Rejoignez des milliers d'utilisateurs qui ont amélioré leurs habitudes financières avec Masroufi.
           </p>
           <Button 
             size="lg" 
@@ -165,7 +165,7 @@ const Index = () => {
             className="bg-white text-masroufi-primary hover:bg-gray-100"
             onClick={() => navigate('/register')}
           >
-            Create Free Account
+            Créer un compte gratuit
           </Button>
         </div>
       </div>
@@ -175,8 +175,10 @@ const Index = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div>
-              <h3 className="text-xl font-bold text-white mb-2">Masroufi</h3>
-              <p className="text-sm">Your personal budget compass</p>
+              <div className="mb-2">
+                <Logo size="md" />
+              </div>
+              <p className="text-sm">Votre compas budgétaire personnel</p>
             </div>
             <div className="flex space-x-8 mt-6 md:mt-0">
               <div>
@@ -205,7 +207,7 @@ const Index = () => {
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-gray-800 text-center text-sm">
-            <p>&copy; {new Date().getFullYear()} Masroufi. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Masroufi. Tous droits réservés.</p>
           </div>
         </div>
       </footer>
