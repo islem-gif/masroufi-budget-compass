@@ -1,8 +1,8 @@
 
-import { useToast as useToastOriginal } from "@/components/ui/use-toast";
-import { toast as toastOriginal } from "@/components/ui/use-toast";
+// Re-export from the components file
+import { useToast as useToastComponent, toast as toastFunction } from "@/components/ui/use-toast";
 
-export const useToast = useToastOriginal;
-export const toast = toastOriginal;
+export const useToast = useToastComponent;
+export const toast = toastFunction;
 
 export default useToast;
