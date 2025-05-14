@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -96,11 +95,24 @@ const Intro = () => {
   const partnersInView = useInView(partnersRef);
   const infoInView = useInView(infoRef);
   
+  // Updated partners with better images
   const partners = [
-    { name: "Finance Plus", logo: "https://images.unsplash.com/photo-1579621970795-87facc2f976d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
-    { name: "BankSecure", logo: "https://images.unsplash.com/photo-1579621970795-87facc2f976d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
-    { name: "InvestGroup", logo: "https://images.unsplash.com/photo-1579621970795-87facc2f976d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
-    { name: "TechFinance", logo: "https://images.unsplash.com/photo-1579621970795-87facc2f976d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" },
+    { 
+      name: "Finance Plus", 
+      logo: "https://images.unsplash.com/photo-1586076100131-32505c71d0d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" 
+    },
+    { 
+      name: "BankSecure", 
+      logo: "https://images.unsplash.com/photo-1434626881859-194d67b2b86f?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" 
+    },
+    { 
+      name: "InvestGroup", 
+      logo: "https://images.unsplash.com/photo-1598425237654-4fc758e50a93?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" 
+    },
+    { 
+      name: "TechFinance", 
+      logo: "https://images.unsplash.com/photo-1579621970795-87facc2f976d?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" 
+    },
   ];
 
   return (

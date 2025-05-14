@@ -14,21 +14,21 @@ import DealDetail from './pages/deals/DealDetail';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import NotFound from './pages/NotFound';
+import ResetPassword from './pages/auth/ResetPassword';
 import Intro from './pages/Intro';
-import Index from './pages/Index';
-import './App.css';
 import Family from './pages/family/Family';
 import Challenges from './pages/gamification/Challenges';
 import Assistant from './pages/assistant/Assistant';
+import './App.css';
 
 function App() {
   return (
     <MasroufiProvider>
       <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/intro" element={<Intro />} />
+        <Route path="/" element={<Intro />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/" element={<MainLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="transactions" element={<Transactions />} />

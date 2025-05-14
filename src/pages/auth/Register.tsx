@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import { useMasroufi } from '@/lib/MasroufiContext';
 import { useToast } from '@/hooks/use-toast';
 import { Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Logo } from '@/components/ui/logo';
 
 const Register = () => {
   const [firstName, setFirstName] = useState('');
@@ -119,14 +119,15 @@ const Register = () => {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="w-full max-w-md space-y-8">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-purple-400 to-pink-500 p-4">
+      <div className="w-full max-w-md space-y-8 backdrop-blur-lg bg-white/30 p-8 rounded-2xl shadow-xl">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-masroufi-primary">Masroufi</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Your personal budget compass</p>
+          <div className="flex justify-center mb-4">
+            <Logo size="lg" variant="simple" />
+          </div>
         </div>
 
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-sm border-none shadow-lg">
           <CardHeader>
             <CardTitle>Create your account</CardTitle>
             <CardDescription>Enter your details to get started with Masroufi</CardDescription>

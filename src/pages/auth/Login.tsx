@@ -23,15 +23,21 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Connecter avec Supabase
+      console.log("Attempting to login with:", email);
+      // Connect with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase login error:", error);
+        throw error;
+      }
       
-      // Si la connexion est réussie, connecter l'utilisateur localement aussi
+      console.log("Login successful, user data:", data.user);
+      
+      // If login is successful, also login the user locally
       if (data.user) {
         loginUser(email, password);
         
@@ -47,7 +53,7 @@ const Login = () => {
       
       let errorMessage = "Veuillez vérifier vos identifiants et réessayer.";
       
-      // Messages d'erreur plus spécifiques
+      // More specific error messages
       if (error.message?.includes('Invalid login credentials')) {
         errorMessage = "E-mail ou mot de passe incorrect.";
       } else if (error.message?.includes('Email not confirmed')) {
@@ -64,55 +70,23 @@ const Login = () => {
     }
   };
 
-  const handleResetPassword = async () => {
-    if (!email) {
-      toast({
-        variant: "destructive",
-        title: "E-mail requis",
-        description: "Veuillez entrer votre adresse e-mail pour réinitialiser votre mot de passe.",
-      });
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "E-mail envoyé",
-        description: "Vérifiez votre e-mail pour les instructions de réinitialisation du mot de passe.",
-      });
-    } catch (error: any) {
-      console.error('Reset password error:', error);
-      toast({
-        variant: "destructive",
-        title: "Échec de la réinitialisation",
-        description: error.message || "Une erreur s'est produite. Veuillez réessayer.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleResetPassword = () => {
+    navigate('/reset-password');
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="w-full max-w-md space-y-8">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-green-400 to-blue-500 p-4">
+      <div className="w-full max-w-md space-y-8 backdrop-blur-lg bg-white/30 p-8 rounded-2xl shadow-xl">
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <Logo size="lg" />
+            <Logo size="lg" variant="simple" />
           </div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Votre compas budgétaire personnel</p>
         </div>
 
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-sm border-none shadow-lg">
           <CardHeader>
-            <CardTitle>Connectez-vous à votre compte</CardTitle>
-            <CardDescription>Entrez votre e-mail et mot de passe pour accéder à votre tableau de bord</CardDescription>
+            <CardTitle className="text-center">Connectez-vous à votre compte</CardTitle>
+            <CardDescription className="text-center">Entrez votre e-mail et mot de passe pour accéder à votre tableau de bord</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
@@ -125,6 +99,7 @@ const Login = () => {
                   value={email} 
                   onChange={e => setEmail(e.target.value)}
                   required
+                  className="bg-white/70"
                 />
               </div>
               <div className="space-y-2">
@@ -136,13 +111,14 @@ const Login = () => {
                   value={password} 
                   onChange={e => setPassword(e.target.value)}
                   required
+                  className="bg-white/70"
                 />
               </div>
               <div className="text-sm text-right">
                 <button 
                   type="button" 
                   onClick={handleResetPassword} 
-                  className="text-masroufi-secondary hover:underline"
+                  className="text-blue-600 hover:underline"
                 >
                   Mot de passe oublié?
                 </button>
@@ -151,7 +127,7 @@ const Login = () => {
             <CardFooter className="flex flex-col space-y-4">
               <Button 
                 type="submit" 
-                className="w-full bg-masroufi-primary hover:bg-masroufi-primary/90" 
+                className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700" 
                 disabled={isLoading}
               >
                 {isLoading ? 'Connexion en cours...' : 'Se connecter'}
@@ -160,7 +136,7 @@ const Login = () => {
                 Vous n'avez pas de compte?{" "}
                 <a 
                   href="/register" 
-                  className="text-masroufi-secondary hover:underline"
+                  className="text-blue-600 hover:underline"
                   onClick={(e) => {
                     e.preventDefault();
                     navigate('/register');
