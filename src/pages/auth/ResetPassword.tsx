@@ -8,13 +8,15 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Logo from '@/components/common/Logo';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
 const ResetPassword = () => {
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [resetMode, setResetMode] = useState<'request' | 'update'>('request');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resetMode, setResetMode] = useState<'request' | 'update' | 'success'>('request');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -42,6 +44,7 @@ const ResetPassword = () => {
 
       if (error) throw error;
 
+      setResetMode('success');
       toast({
         title: "Email envoyé",
         description: "Vérifiez votre email pour les instructions de réinitialisation du mot de passe.",
@@ -96,102 +99,197 @@ const ResetPassword = () => {
     }
   };
 
-  return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-teal-400 to-blue-500 p-4">
-      <div className="w-full max-w-md space-y-8 backdrop-blur-lg bg-white/30 p-8 rounded-2xl shadow-xl">
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <Logo size="lg" variant="simple" />
+  const renderContent = () => {
+    if (resetMode === 'success') {
+      return (
+        <div className="text-center space-y-6">
+          <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900">Email envoyé !</h3>
+            <p className="text-gray-600">
+              Nous avons envoyé un lien de réinitialisation à <span className="font-medium">{email}</span>
+            </p>
+            <p className="text-sm text-gray-500">
+              Vérifiez votre boîte de réception et cliquez sur le lien pour réinitialiser votre mot de passe.
+            </p>
+          </div>
+          <Button 
+            onClick={() => navigate('/login')}
+            className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+          >
+            Retour à la connexion
+          </Button>
+        </div>
+      );
+    }
+
+    if (resetMode === 'update') {
+      return (
+        <form onSubmit={handleUpdatePassword} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="newPassword" className="text-sm font-medium text-gray-700">
+              Nouveau mot de passe
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input 
+                id="newPassword" 
+                type={showPassword ? "text" : "password"}
+                placeholder="Entrez votre nouveau mot de passe" 
+                value={newPassword} 
+                onChange={e => setNewPassword(e.target.value)}
+                required
+                className="pl-10 pr-10 h-11 bg-white/70 border-gray-200 focus:border-primary focus:ring-primary"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+              Confirmez le mot de passe
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input 
+                id="confirmPassword" 
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirmez votre nouveau mot de passe" 
+                value={confirmPassword} 
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+                className="pl-10 pr-10 h-11 bg-white/70 border-gray-200 focus:border-primary focus:ring-primary"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+              >
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          
+          <Button 
+            type="submit" 
+            className="w-full h-11 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-medium" 
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Mise à jour en cours...
+              </div>
+            ) : (
+              'Mettre à jour le mot de passe'
+            )}
+          </Button>
+        </form>
+      );
+    }
+
+    return (
+      <form onSubmit={handleRequestReset} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+            Adresse e-mail
+          </Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="votre@email.com" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)}
+              required
+              className="pl-10 h-11 bg-white/70 border-gray-200 focus:border-primary focus:ring-primary"
+            />
           </div>
         </div>
+        
+        <Button 
+          type="submit" 
+          className="w-full h-11 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-medium" 
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Envoi en cours...
+            </div>
+          ) : (
+            'Envoyer les instructions'
+          )}
+        </Button>
+      </form>
+    );
+  };
 
-        <Card className="bg-white/80 backdrop-blur-sm border-none shadow-lg">
-          <CardHeader>
-            <Button 
-              variant="ghost" 
-              className="w-fit p-0 h-auto mb-4" 
-              onClick={() => navigate('/login')}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" /> Retour à la connexion
-            </Button>
-            <CardTitle>
-              {resetMode === 'request' 
-                ? 'Réinitialisation de mot de passe' 
-                : 'Créer un nouveau mot de passe'}
-            </CardTitle>
-            <CardDescription>
-              {resetMode === 'request' 
-                ? 'Entrez votre adresse e-mail pour recevoir un lien de réinitialisation.' 
-                : 'Entrez votre nouveau mot de passe.'}
-            </CardDescription>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo Section */}
+        <div className="text-center mb-8">
+          <Logo size="lg" variant="simple" />
+          <h1 className="mt-4 text-2xl font-bold text-gray-900">
+            {resetMode === 'update' ? 'Nouveau mot de passe' : 'Réinitialisation'}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            {resetMode === 'update' 
+              ? 'Créez un nouveau mot de passe sécurisé'
+              : 'Récupérez l\'accès à votre compte'
+            }
+          </p>
+        </div>
+
+        {/* Reset Password Card */}
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-lg">
+          <CardHeader className="space-y-1 pb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/login')}
+                className="p-2 hover:bg-gray-100"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex-1">
+                <CardTitle className="text-xl font-semibold text-gray-900">
+                  {resetMode === 'update' 
+                    ? 'Nouveau mot de passe' 
+                    : resetMode === 'success'
+                    ? 'Email envoyé'
+                    : 'Mot de passe oublié'
+                  }
+                </CardTitle>
+                {resetMode === 'request' && (
+                  <CardDescription className="text-gray-600 mt-1">
+                    Entrez votre adresse e-mail pour recevoir un lien de réinitialisation
+                  </CardDescription>
+                )}
+              </div>
+            </div>
           </CardHeader>
           
-          {resetMode === 'request' ? (
-            <form onSubmit={handleRequestReset}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="votre@email.com" 
-                    value={email} 
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                    className="bg-white/70"
-                  />
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col space-y-4">
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Envoi en cours...' : 'Envoyer les instructions'}
-                </Button>
-              </CardFooter>
-            </form>
-          ) : (
-            <form onSubmit={handleUpdatePassword}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">Nouveau mot de passe</Label>
-                  <Input 
-                    id="newPassword" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={newPassword} 
-                    onChange={e => setNewPassword(e.target.value)}
-                    required
-                    className="bg-white/70"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirmez le mot de passe</Label>
-                  <Input 
-                    id="confirmPassword" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={confirmPassword} 
-                    onChange={e => setConfirmPassword(e.target.value)}
-                    required
-                    className="bg-white/70"
-                  />
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col space-y-4">
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Mise à jour en cours...' : 'Mettre à jour le mot de passe'}
-                </Button>
-              </CardFooter>
-            </form>
-          )}
+          <CardContent>
+            {renderContent()}
+          </CardContent>
         </Card>
+
+        {/* Footer */}
+        <div className="text-center mt-8 text-sm text-gray-500">
+          © 2024 Masroufi. Tous droits réservés.
+        </div>
       </div>
     </div>
   );

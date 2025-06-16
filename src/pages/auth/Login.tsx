@@ -9,14 +9,13 @@ import { useMasroufi } from '@/lib/MasroufiContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Logo from '@/components/common/Logo';
-import { AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [resetMode, setResetMode] = useState(false);
-  const [resetEmailSent, setResetEmailSent] = useState(false);
   const { loginUser } = useMasroufi();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -39,6 +38,7 @@ const Login = () => {
 
     try {
       console.log("Attempting to login with:", email);
+      
       // Connect with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -54,7 +54,7 @@ const Login = () => {
       
       // If login is successful, also login the user locally
       if (data.user) {
-        loginUser(email, password);
+        await loginUser(email, password);
         
         toast({
           title: "Connexion réussie!",
@@ -85,195 +85,120 @@ const Login = () => {
     }
   };
 
-  const handleResetPassword = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    
-    if (!resetMode) {
-      setResetMode(true);
-      return;
-    }
-
-    if (!email.trim()) {
-      toast({
-        variant: "destructive",
-        title: "E-mail requis",
-        description: "Veuillez entrer votre adresse e-mail pour réinitialiser votre mot de passe.",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) throw error;
-
-      setResetEmailSent(true);
-      toast({
-        title: "E-mail de réinitialisation envoyé",
-        description: "Veuillez vérifier votre boîte de réception.",
-      });
-    } catch (error: any) {
-      console.error('Reset password error:', error);
-      
-      toast({
-        variant: "destructive",
-        title: "Échec de la réinitialisation",
-        description: "Impossible d'envoyer l'e-mail de réinitialisation. Veuillez réessayer plus tard.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const cancelResetPassword = () => {
-    setResetMode(false);
-  };
-
-  // Affichage du formulaire de réinitialisation du mot de passe
-  if (resetMode) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-400 to-purple-500 p-4">
-        <div className="w-full max-w-md space-y-8 backdrop-blur-lg bg-white/30 p-8 rounded-2xl shadow-xl">
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <Logo size="lg" variant="simple" />
-            </div>
-          </div>
-
-          <Card className="bg-white/80 backdrop-blur-sm border-none shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-center">Réinitialisation du mot de passe</CardTitle>
-              <CardDescription className="text-center">
-                {resetEmailSent 
-                  ? "Un email de réinitialisation a été envoyé." 
-                  : "Entrez votre adresse e-mail pour recevoir un lien de réinitialisation"}
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleResetPassword}>
-              <CardContent className="space-y-4">
-                {resetEmailSent ? (
-                  <div className="bg-green-50 p-4 rounded-lg text-center">
-                    <p className="text-green-800">Veuillez vérifier votre boîte de réception et cliquer sur le lien de réinitialisation.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="email">E-mail</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="votre@email.com" 
-                      value={email} 
-                      onChange={e => setEmail(e.target.value)}
-                      required
-                      className="bg-white/70"
-                    />
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter className="flex flex-col space-y-4">
-                {!resetEmailSent && (
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Envoi en cours...' : 'Envoyer le lien de réinitialisation'}
-                  </Button>
-                )}
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={cancelResetPassword}
-                >
-                  Retour à la connexion
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-400 to-purple-500 p-4">
-      <div className="w-full max-w-md space-y-8 backdrop-blur-lg bg-white/30 p-8 rounded-2xl shadow-xl">
-        <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <Logo size="lg" variant="simple" />
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo Section */}
+        <div className="text-center mb-8">
+          <Logo size="lg" variant="simple" />
+          <h1 className="mt-4 text-2xl font-bold text-gray-900">
+            Bienvenue sur Masroufi
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Connectez-vous à votre compte
+          </p>
         </div>
 
-        <Card className="bg-white/80 backdrop-blur-sm border-none shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-center">Connexion</CardTitle>
-            <CardDescription className="text-center">Accédez à votre tableau de bord</CardDescription>
+        {/* Login Card */}
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-lg">
+          <CardHeader className="space-y-1 pb-6">
+            <CardTitle className="text-xl font-semibold text-center text-gray-900">
+              Connexion
+            </CardTitle>
+            <CardDescription className="text-center text-gray-600">
+              Entrez vos identifiants pour accéder à votre tableau de bord
+            </CardDescription>
           </CardHeader>
+          
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="votre@email.com" 
-                  value={email} 
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  className="bg-white/70"
-                />
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Adresse e-mail
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="votre@email.com" 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    className="pl-10 h-11 bg-white/70 border-gray-200 focus:border-primary focus:ring-primary"
+                  />
+                </div>
               </div>
+              
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Mot de passe</Label>
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    Mot de passe
+                  </Label>
                   <button 
                     type="button" 
-                    onClick={handleResetPassword} 
-                    className="text-blue-600 hover:underline text-sm"
+                    onClick={() => navigate('/reset-password')}
+                    className="text-sm text-primary hover:text-primary/80 hover:underline"
                   >
                     Mot de passe oublié?
                   </button>
                 </div>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  value={password} 
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  className="bg-white/70"
-                />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••" 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    className="pl-10 pr-10 h-11 bg-white/70 border-gray-200 focus:border-primary focus:ring-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
+            
+            <CardFooter className="flex flex-col space-y-4 pt-2">
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700" 
+                className="w-full h-11 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-medium transition-all duration-200" 
                 disabled={isLoading}
               >
-                {isLoading ? 'Connexion en cours...' : 'Se connecter'}
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Connexion en cours...
+                  </div>
+                ) : (
+                  'Se connecter'
+                )}
               </Button>
-              <div className="text-center text-sm">
+              
+              <div className="text-center text-sm text-gray-600">
                 Vous n'avez pas de compte?{" "}
-                <a 
-                  href="/register" 
-                  className="text-blue-600 hover:underline"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate('/register');
-                  }}
+                <button 
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="text-primary hover:text-primary/80 hover:underline font-medium"
                 >
                   S'inscrire
-                </a>
+                </button>
               </div>
             </CardFooter>
           </form>
         </Card>
+
+        {/* Footer */}
+        <div className="text-center mt-8 text-sm text-gray-500">
+          © 2024 Masroufi. Tous droits réservés.
+        </div>
       </div>
     </div>
   );
