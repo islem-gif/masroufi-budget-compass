@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useMasroufi } from '@/lib/MasroufiContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Logo from '@/components/common/Logo';
@@ -16,16 +15,20 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { loginUser } = useMasroufi();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Vérifier si l'utilisateur est déjà connecté
+  // Check if user is already authenticated
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        navigate('/dashboard');
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          console.log("User already authenticated, redirecting to dashboard");
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
       }
     };
     
@@ -34,14 +37,28 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isLoading) {
+      console.log("Login already in progress, ignoring duplicate submission");
+      return;
+    }
+
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Champs manquants",
+        description: "Veuillez remplir tous les champs.",
+      });
+      return;
+    }
+
     setIsLoading(true);
+    console.log("Starting login process for:", email);
 
     try {
-      console.log("Attempting to login with:", email);
-      
-      // Connect with Supabase
+      // Simple Supabase auth login - no double calls
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password
       });
       
@@ -50,17 +67,15 @@ const Login = () => {
         throw error;
       }
       
-      console.log("Login successful, user data:", data.user);
-      
-      // If login is successful, also login the user locally
       if (data.user) {
-        await loginUser(email, password);
+        console.log("Login successful for user:", data.user.id);
         
         toast({
           title: "Connexion réussie!",
           description: "Bienvenue sur Masroufi.",
         });
         
+        // Navigate after successful login
         navigate('/dashboard');
       }
     } catch (error: any) {
@@ -68,11 +83,12 @@ const Login = () => {
       
       let errorMessage = "Veuillez vérifier vos identifiants et réessayer.";
       
-      // More specific error messages
       if (error.message?.includes('Invalid login credentials')) {
         errorMessage = "E-mail ou mot de passe incorrect.";
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = "Veuillez confirmer votre e-mail avant de vous connecter.";
+      } else if (error.message?.includes('Failed to fetch')) {
+        errorMessage = "Problème de connexion. Vérifiez votre connexion internet et réessayez.";
       }
       
       toast({
@@ -125,6 +141,7 @@ const Login = () => {
                     value={email} 
                     onChange={e => setEmail(e.target.value)}
                     required
+                    disabled={isLoading}
                     className="pl-10 h-11 bg-white/70 border-gray-200 focus:border-primary focus:ring-primary"
                   />
                 </div>
@@ -139,6 +156,7 @@ const Login = () => {
                     type="button" 
                     onClick={() => navigate('/reset-password')}
                     className="text-sm text-primary hover:text-primary/80 hover:underline"
+                    disabled={isLoading}
                   >
                     Mot de passe oublié?
                   </button>
@@ -152,12 +170,14 @@ const Login = () => {
                     value={password} 
                     onChange={e => setPassword(e.target.value)}
                     required
+                    disabled={isLoading}
                     className="pl-10 pr-10 h-11 bg-white/70 border-gray-200 focus:border-primary focus:ring-primary"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                    disabled={isLoading}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -187,6 +207,7 @@ const Login = () => {
                   type="button"
                   onClick={() => navigate('/register')}
                   className="text-primary hover:text-primary/80 hover:underline font-medium"
+                  disabled={isLoading}
                 >
                   S'inscrire
                 </button>

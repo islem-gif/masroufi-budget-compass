@@ -43,14 +43,9 @@ interface MasroufiContextType {
   changeCurrency: (currency: string) => Promise<void>;
 }
 
-// Create context with a default undefined value
 const MasroufiContext = createContext<MasroufiContextType | undefined>(undefined);
 
-// Define the provider component as a React functional component
 export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Modifier le mockUser pour utiliser TND par défaut
-  const modifiedMockUser = {...mockUser, currency: 'TND'};
-  
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -60,106 +55,115 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   
-  // Écouter les changements d'état d'authentification
+  // Authentication state management
   useEffect(() => {
+    let mounted = true;
+    
     const setupAuth = async () => {
-      // Configurer les listeners avant de vérifier la session existante
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          console.log("Auth state changed:", event, session?.user?.id);
-          
-          if (session && session.user) {
-            // Utilisateur connecté
-            try {
-              // Récupérer les informations utilisateur depuis notre table custom
-              let userData = await supabaseOperations.getUser(session.user.id);
-              
-              if (userData) {
-                console.log("User data retrieved:", userData);
-                setUser(userData);
-                setIsAuthenticated(true);
+      try {
+        // Set up auth state change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+            
+            console.log("Auth state changed:", event, session?.user?.id);
+            
+            if (session && session.user) {
+              try {
+                // User is signed in
+                let userData = await supabaseOperations.getUser(session.user.id);
                 
-                // Charger les données de l'utilisateur
-                loadUserData(session.user.id);
-              } else {
-                console.log("Creating new user profile");
-                // Créer l'utilisateur si c'est la première connexion
-                const newUser: User = {
-                  id: session.user.id,
-                  email: session.user.email || 'user@example.com', 
-                  firstName: session.user.user_metadata?.first_name || 'New',
-                  lastName: session.user.user_metadata?.last_name || 'User',
-                  darkMode: false,
-                  language: 'fr',
-                  currency: 'TND',
-                  phone: session.user.phone || session.user.user_metadata?.phone || undefined,
-                  avatar: session.user.user_metadata?.avatar_url
-                };
-                
-                console.log("New user data to create:", newUser);
-                
-                // Sauvegarder le nouvel utilisateur
-                await supabaseOperations.createUser(newUser, session.user.id);
-                setUser(newUser);
-                setIsAuthenticated(true);
-                
-                // Initialiser des catégories de base pour le nouvel utilisateur
-                initializeUserData(session.user.id);
+                if (userData) {
+                  console.log("User data retrieved:", userData);
+                  setUser(userData);
+                  setIsAuthenticated(true);
+                  
+                  // Load user data in background
+                  setTimeout(() => {
+                    if (mounted) loadUserData(session.user.id);
+                  }, 0);
+                } else {
+                  // Create new user profile
+                  console.log("Creating new user profile");
+                  const newUser: User = {
+                    id: session.user.id,
+                    email: session.user.email || 'user@example.com', 
+                    firstName: session.user.user_metadata?.first_name || 'New',
+                    lastName: session.user.user_metadata?.last_name || 'User',
+                    darkMode: false,
+                    language: 'fr',
+                    currency: 'TND',
+                    phone: session.user.phone || session.user.user_metadata?.phone || undefined,
+                    avatar: session.user.user_metadata?.avatar_url
+                  };
+                  
+                  await supabaseOperations.createUser(newUser, session.user.id);
+                  setUser(newUser);
+                  setIsAuthenticated(true);
+                  
+                  // Initialize user data in background
+                  setTimeout(() => {
+                    if (mounted) initializeUserData(session.user.id);
+                  }, 0);
+                }
+              } catch (error) {
+                console.error("Error handling auth state change:", error);
+                if (mounted) {
+                  setUser(null);
+                  setIsAuthenticated(false);
+                }
               }
-            } catch (error) {
-              console.error("Erreur lors du chargement des données utilisateur:", error);
-              setUser(null);
-              setIsAuthenticated(false);
+            } else {
+              // User is signed out
+              if (mounted) {
+                setUser(null);
+                setIsAuthenticated(false);
+                resetData();
+              }
             }
-          } else {
-            // Utilisateur déconnecté
-            setUser(null);
-            setIsAuthenticated(false);
-            resetData();
           }
-        }
-      );
-      
-      // Vérifier la session existante
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log("Current session check:", session?.user?.id);
-      // Ne pas traiter la session ici, le authStateChange ci-dessus va s'en charger
+        );
+        
+        // Check current session
+        const { data: { session } } = await supabase.auth.getSession();
+        // The onAuthStateChange above will handle the session
+        
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error("Error setting up auth:", error);
+      }
     };
     
     setupAuth();
     
-    // Charger les deals pour tous les utilisateurs (même non connectés)
+    // Load deals for all users
     loadDeals();
     
-    // Pas besoin de désabonnement car setupAuth est une fonction asynchrone
-    // qui gère elle-même l'abonnement et le désabonnement
+    return () => {
+      mounted = false;
+    };
   }, []);
   
-  // Charger les données de l'utilisateur depuis Supabase
   const loadUserData = async (userId: string) => {
     try {
-      // Charger les catégories
       const userCategories = await supabaseOperations.getCategories(userId);
       setCategories(userCategories.length ? userCategories : mockCategories);
       
-      // Charger les transactions
       const userTransactions = await supabaseOperations.getTransactions(userId);
       setTransactions(userTransactions.length ? userTransactions : mockTransactions);
       
-      // Charger les budgets
       const userBudgets = await supabaseOperations.getBudgets(userId);
       setBudgets(userBudgets.length ? userBudgets : mockBudgets);
       
-      // Charger les objectifs
       const userGoals = await supabaseOperations.getGoals(userId);
       setGoals(userGoals.length ? userGoals : mockGoals);
       
-      // Charger les notifications
       const userNotifications = await supabaseOperations.getNotifications(userId);
       setNotifications(userNotifications.length ? userNotifications : mockNotifications);
     } catch (error) {
-      console.error("Erreur lors du chargement des données:", error);
-      // Utiliser les données mock en cas d'erreur
+      console.error("Error loading user data:", error);
       setCategories(mockCategories);
       setTransactions(mockTransactions);
       setBudgets(mockBudgets);
@@ -168,10 +172,8 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
   
-  // Initialiser les données de base pour un nouvel utilisateur
   const initializeUserData = async (userId: string) => {
     try {
-      // Créer les catégories de base
       for (const category of mockCategories) {
         await supabaseOperations.createCategory(
           {
@@ -185,29 +187,25 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
       
       setCategories(mockCategories);
-      
-      // On ne crée pas de transactions, budgets, etc. pour un nouvel utilisateur
       setTransactions([]);
       setBudgets([]);
       setGoals([]);
       setNotifications([]);
     } catch (error) {
-      console.error("Erreur lors de l'initialisation des données utilisateur:", error);
+      console.error("Error initializing user data:", error);
     }
   };
   
-  // Charger les deals depuis Supabase
   const loadDeals = async () => {
     try {
       const allDeals = await supabaseOperations.getDeals();
       setDeals(allDeals.length ? allDeals : mockDeals);
     } catch (error) {
-      console.error("Erreur lors du chargement des deals:", error);
+      console.error("Error loading deals:", error);
       setDeals(mockDeals);
     }
   };
   
-  // Réinitialiser les données lors de la déconnexion
   const resetData = () => {
     setCategories([]);
     setTransactions([]);
@@ -216,10 +214,9 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
     setNotifications([]);
   };
 
-  // User Authentication
+  // User Authentication - simplified
   const registerUser = async (email: string, password: string, firstName: string, lastName: string) => {
-    // L'enregistrement est géré par Supabase Auth dans le composant Register
-    // Cette fonction reste pour la compatibilité avec l'existant
+    // Registration is handled by Supabase Auth in the Register component
     const newUser: User = {
       id: crypto.randomUUID(),
       email,
@@ -234,18 +231,21 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const loginUser = (email: string, password: string) => {
-    // Cette fonction est appelée après le succès de l'authentification Supabase
-    console.log("User logged in locally:", email);
+    // This function is kept for compatibility but login is handled by Supabase Auth
+    console.log("loginUser called - handled by Supabase Auth");
   };
 
   const logoutUser = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setIsAuthenticated(false);
-    resetData();
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setIsAuthenticated(false);
+      resetData();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
-  // Transactions
   const addTransaction = async (transaction: Omit<Transaction, 'id' | 'userId'>) => {
     if (!user) return;
     
@@ -254,7 +254,6 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
       
       setTransactions(prev => [...prev, newTransaction]);
   
-      // Update budget spent for expense transactions
       if (transaction.type === 'expense') {
         const relevantBudget = budgets.find(b => b.categoryId === transaction.categoryId);
         if (relevantBudget) {
@@ -262,12 +261,11 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
       }
     } catch (error) {
-      console.error("Erreur lors de l'ajout d'une transaction:", error);
+      console.error("Error adding transaction:", error);
       throw error;
     }
   };
 
-  // Budgets
   const addBudget = async (budget: Omit<Budget, 'id' | 'userId' | 'spent'>) => {
     if (!user) return;
     
@@ -275,7 +273,7 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
       const newBudget = await supabaseOperations.createBudget(budget, user.id);
       setBudgets(prev => [...prev, newBudget]);
     } catch (error) {
-      console.error("Erreur lors de l'ajout d'un budget:", error);
+      console.error("Error adding budget:", error);
       throw error;
     }
   };
@@ -294,12 +292,11 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
         )
       );
     } catch (error) {
-      console.error("Erreur lors de la mise à jour d'un budget:", error);
+      console.error("Error updating budget:", error);
       throw error;
     }
   };
 
-  // Goals
   const addGoal = async (goal: Omit<FinancialGoal, 'id' | 'userId' | 'currentAmount'>) => {
     if (!user) return;
     
@@ -307,7 +304,7 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
       const newGoal = await supabaseOperations.createGoal(goal, user.id);
       setGoals(prev => [...prev, newGoal]);
     } catch (error) {
-      console.error("Erreur lors de l'ajout d'un objectif:", error);
+      console.error("Error adding goal:", error);
       throw error;
     }
   };
@@ -326,12 +323,11 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
         )
       );
     } catch (error) {
-      console.error("Erreur lors de la mise à jour d'un objectif:", error);
+      console.error("Error updating goal:", error);
       throw error;
     }
   };
 
-  // Notifications
   const markNotificationAsRead = async (id: string) => {
     try {
       await supabaseOperations.markNotificationAsRead(id);
@@ -342,12 +338,11 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
         )
       );
     } catch (error) {
-      console.error("Erreur lors du marquage d'une notification comme lue:", error);
+      console.error("Error marking notification as read:", error);
       throw error;
     }
   };
 
-  // User Preferences
   const toggleDarkMode = async () => {
     if (user) {
       try {
@@ -356,10 +351,9 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
         
         setUser(updatedUser);
         
-        // Apply dark mode to document
         document.documentElement.classList.toggle('dark', updatedUser.darkMode);
       } catch (error) {
-        console.error("Erreur lors du changement de mode:", error);
+        console.error("Error toggling dark mode:", error);
         throw error;
       }
     }
@@ -373,7 +367,7 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
         
         setUser(updatedUser);
       } catch (error) {
-        console.error("Erreur lors du changement de langue:", error);
+        console.error("Error changing language:", error);
         throw error;
       }
     }
@@ -387,7 +381,7 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
         
         setUser(updatedUser);
       } catch (error) {
-        console.error("Erreur lors du changement de devise:", error);
+        console.error("Error changing currency:", error);
         throw error;
       }
     }
