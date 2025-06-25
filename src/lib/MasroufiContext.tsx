@@ -55,7 +55,7 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   
-  // Authentication state management
+  // Simplified authentication state management
   useEffect(() => {
     let mounted = true;
     
@@ -69,50 +69,42 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
             console.log("Auth state changed:", event, session?.user?.id);
             
             if (session && session.user) {
-              try {
-                // User is signed in
-                let userData = await supabaseOperations.getUser(session.user.id);
+              // User is signed in - defer user data loading to prevent deadlock
+              setIsAuthenticated(true);
+              
+              setTimeout(async () => {
+                if (!mounted) return;
                 
-                if (userData) {
-                  console.log("User data retrieved:", userData);
-                  setUser(userData);
-                  setIsAuthenticated(true);
+                try {
+                  let userData = await supabaseOperations.getUser(session.user.id);
                   
-                  // Load user data in background
-                  setTimeout(() => {
-                    if (mounted) loadUserData(session.user.id);
-                  }, 0);
-                } else {
-                  // Create new user profile
-                  console.log("Creating new user profile");
-                  const newUser: User = {
-                    id: session.user.id,
-                    email: session.user.email || 'user@example.com', 
-                    firstName: session.user.user_metadata?.first_name || 'New',
-                    lastName: session.user.user_metadata?.last_name || 'User',
-                    darkMode: false,
-                    language: 'fr',
-                    currency: 'TND',
-                    phone: session.user.phone || session.user.user_metadata?.phone || undefined,
-                    avatar: session.user.user_metadata?.avatar_url
-                  };
-                  
-                  await supabaseOperations.createUser(newUser, session.user.id);
-                  setUser(newUser);
-                  setIsAuthenticated(true);
-                  
-                  // Initialize user data in background
-                  setTimeout(() => {
-                    if (mounted) initializeUserData(session.user.id);
-                  }, 0);
+                  if (userData) {
+                    console.log("User data retrieved:", userData);
+                    setUser(userData);
+                    loadUserData(session.user.id);
+                  } else {
+                    // Create new user profile
+                    console.log("Creating new user profile");
+                    const newUser: User = {
+                      id: session.user.id,
+                      email: session.user.email || 'user@example.com', 
+                      firstName: session.user.user_metadata?.first_name || 'New',
+                      lastName: session.user.user_metadata?.last_name || 'User',
+                      darkMode: false,
+                      language: 'fr',
+                      currency: 'TND',
+                      phone: session.user.phone || session.user.user_metadata?.phone || undefined,
+                      avatar: session.user.user_metadata?.avatar_url
+                    };
+                    
+                    await supabaseOperations.createUser(newUser, session.user.id);
+                    setUser(newUser);
+                    initializeUserData(session.user.id);
+                  }
+                } catch (error) {
+                  console.error("Error handling auth state change:", error);
                 }
-              } catch (error) {
-                console.error("Error handling auth state change:", error);
-                if (mounted) {
-                  setUser(null);
-                  setIsAuthenticated(false);
-                }
-              }
+              }, 0);
             } else {
               // User is signed out
               if (mounted) {

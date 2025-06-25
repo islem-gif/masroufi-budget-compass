@@ -56,7 +56,6 @@ const Login = () => {
     console.log("Starting login process for:", email);
 
     try {
-      // Simple Supabase auth login - no double calls
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password
