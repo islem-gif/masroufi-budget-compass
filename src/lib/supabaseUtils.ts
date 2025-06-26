@@ -1,576 +1,488 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { 
-  UserTable, 
-  CategoryTable, 
-  TransactionTable, 
-  BudgetTable, 
-  FinancialGoalTable, 
-  NotificationTable, 
-  DealTable 
-} from '@/types/supabase-types';
-import { 
-  User, 
-  Category, 
-  Transaction, 
-  Budget, 
-  FinancialGoal, 
-  Notification, 
-  Deal 
-} from '@/types';
+import { User, Category, Transaction, Budget, FinancialGoal, Notification, Deal } from '@/types';
 
-// Helper functions to convert between our app types and Supabase table types
-
-// User conversions
-export const toAppUser = (dbUser: UserTable): User => ({
-  id: dbUser.id,
-  email: dbUser.email,
-  firstName: dbUser.first_name,
-  lastName: dbUser.last_name,
-  phone: dbUser.phone,
-  avatar: dbUser.avatar_url,
-  darkMode: dbUser.dark_mode,
-  language: dbUser.language,
-  currency: dbUser.currency
-});
-
-export const toDbUser = (appUser: User): Omit<UserTable, 'created_at' | 'updated_at'> => ({
-  id: appUser.id,
-  email: appUser.email,
-  first_name: appUser.firstName,
-  last_name: appUser.lastName,
-  phone: appUser.phone,
-  avatar_url: appUser.avatar,
-  dark_mode: appUser.darkMode,
-  language: appUser.language as 'fr' | 'en', // Fix: Ensure language is typed as 'fr' | 'en'
-  currency: appUser.currency
-});
-
-// Category conversions
-export const toAppCategory = (dbCategory: CategoryTable): Category => ({
-  id: dbCategory.id,
-  name: dbCategory.name,
-  icon: dbCategory.icon,
-  color: dbCategory.color,
-  type: dbCategory.type
-});
-
-export const toDbCategory = (appCategory: Category, userId: string): Omit<CategoryTable, 'created_at'> => ({
-  id: appCategory.id,
-  name: appCategory.name,
-  icon: appCategory.icon,
-  color: appCategory.color,
-  type: appCategory.type,
-  user_id: userId
-});
-
-// Transaction conversions
-export const toAppTransaction = (dbTransaction: TransactionTable): Transaction => ({
-  id: dbTransaction.id,
-  amount: dbTransaction.amount,
-  description: dbTransaction.description,
-  date: dbTransaction.date,
-  categoryId: dbTransaction.category_id,
-  type: dbTransaction.type,
-  recurring: dbTransaction.recurring,
-  userId: dbTransaction.user_id
-});
-
-export const toDbTransaction = (appTransaction: Transaction): Omit<TransactionTable, 'created_at'> => ({
-  id: appTransaction.id,
-  amount: appTransaction.amount,
-  description: appTransaction.description,
-  date: appTransaction.date,
-  category_id: appTransaction.categoryId,
-  type: appTransaction.type,
-  recurring: appTransaction.recurring,
-  user_id: appTransaction.userId
-});
-
-// Budget conversions
-export const toAppBudget = (dbBudget: BudgetTable): Budget => ({
-  id: dbBudget.id,
-  categoryId: dbBudget.category_id,
-  amount: dbBudget.amount,
-  spent: dbBudget.spent,
-  period: dbBudget.period,
-  userId: dbBudget.user_id
-});
-
-export const toDbBudget = (appBudget: Budget): Omit<BudgetTable, 'created_at'> => ({
-  id: appBudget.id,
-  category_id: appBudget.categoryId,
-  amount: appBudget.amount,
-  spent: appBudget.spent,
-  period: appBudget.period,
-  user_id: appBudget.userId
-});
-
-// FinancialGoal conversions
-export const toAppFinancialGoal = (dbGoal: FinancialGoalTable): FinancialGoal => ({
-  id: dbGoal.id,
-  name: dbGoal.name,
-  targetAmount: dbGoal.target_amount,
-  currentAmount: dbGoal.current_amount,
-  deadline: dbGoal.deadline,
-  icon: dbGoal.icon,
-  userId: dbGoal.user_id,
-  category: dbGoal.category
-});
-
-export const toDbFinancialGoal = (appGoal: FinancialGoal): Omit<FinancialGoalTable, 'created_at'> => ({
-  id: appGoal.id,
-  name: appGoal.name,
-  target_amount: appGoal.targetAmount,
-  current_amount: appGoal.currentAmount,
-  deadline: appGoal.deadline,
-  icon: appGoal.icon,
-  user_id: appGoal.userId,
-  category: appGoal.category
-});
-
-// Notification conversions
-export const toAppNotification = (dbNotification: NotificationTable): Notification => ({
-  id: dbNotification.id,
-  type: dbNotification.type,
-  message: dbNotification.message,
-  read: dbNotification.read,
-  date: dbNotification.date,
-  userId: dbNotification.user_id
-});
-
-export const toDbNotification = (appNotification: Notification): Omit<NotificationTable, 'created_at'> => ({
-  id: appNotification.id,
-  type: appNotification.type,
-  message: appNotification.message,
-  read: appNotification.read,
-  date: appNotification.date,
-  user_id: appNotification.userId
-});
-
-// Deal conversions
-export const toAppDeal = (dbDeal: DealTable): Deal => ({
-  id: dbDeal.id,
-  title: dbDeal.title,
-  description: dbDeal.description,
-  provider: dbDeal.provider,
-  discount: dbDeal.discount,
-  expiryDate: dbDeal.expiry_date,
-  category: dbDeal.category,
-  location: dbDeal.location,
-  url: dbDeal.url,
-  merchant: dbDeal.merchant,
-  featured: dbDeal.featured,
-  validUntil: dbDeal.valid_until,
-  image: dbDeal.image,
-  link: dbDeal.link,
-  couponCode: dbDeal.coupon_code
-});
-
-export const toDbDeal = (appDeal: Deal): Omit<DealTable, 'created_at'> => ({
-  id: appDeal.id,
-  title: appDeal.title,
-  description: appDeal.description,
-  provider: appDeal.provider,
-  discount: appDeal.discount,
-  expiry_date: appDeal.expiryDate,
-  category: appDeal.category,
-  location: appDeal.location,
-  url: appDeal.url,
-  merchant: appDeal.merchant,
-  featured: appDeal.featured,
-  valid_until: appDeal.validUntil,
-  image: appDeal.image,
-  link: appDeal.link,
-  coupon_code: appDeal.couponCode
-});
-
-// Implement CRUD operations using Supabase
 export const supabaseOperations = {
-  // Users
-  async getUser(userId: string) {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
-      
-    if (error) {
-      console.error('Error fetching user:', error);
+  // User operations
+  async getUser(userId: string): Promise<User | null> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user:', error);
+        return null;
+      }
+
+      return {
+        id: data.id,
+        email: data.email,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        phone: data.phone,
+        avatar: data.avatar_url,
+        darkMode: data.dark_mode,
+        language: data.language as 'fr' | 'en',
+        currency: data.currency,
+        role: data.role as 'admin' | 'user' | undefined
+      };
+    } catch (error) {
+      console.error('Error in getUser:', error);
       return null;
     }
-    
-    // Fix: Add type assertion for user data to ensure language is correctly typed
-    if (data) {
-      const typedData = {
-        ...data,
-        language: data.language as 'fr' | 'en'
-      };
-      return toAppUser(typedData);
-    }
-    
-    return null;
   },
 
-  async createUser(user: Omit<User, 'id'>, id: string) {
-    const dbUser = {
-      ...toDbUser({...user, id}),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    const { error } = await supabase
-      .from('users')
-      .insert([dbUser]);
-      
-    if (error) {
-      console.error('Error creating user:', error);
+  async createUser(user: User, authUserId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .insert({
+          id: authUserId,
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          phone: user.phone,
+          avatar_url: user.avatar,
+          dark_mode: user.darkMode,
+          language: user.language,
+          currency: user.currency,
+          role: user.role || 'user'
+        });
+
+      if (error) {
+        console.error('Error creating user:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in createUser:', error);
       throw error;
     }
-      
-    return {...user, id};
   },
 
-  async updateUser(user: User) {
-    const dbUser = {
-      ...toDbUser(user),
-      updated_at: new Date().toISOString()
-    };
-    
-    const { error } = await supabase
-      .from('users')
-      .update(dbUser)
-      .eq('id', user.id);
-      
-    if (error) {
-      console.error('Error updating user:', error);
+  async updateUser(user: User): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({
+          email: user.email,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          phone: user.phone,
+          avatar_url: user.avatar,
+          dark_mode: user.darkMode,
+          language: user.language,
+          currency: user.currency,
+          role: user.role || 'user'
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating user:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in updateUser:', error);
       throw error;
     }
-      
-    return user;
   },
 
   // Categories
-  async getCategories(userId: string) {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('user_id', userId);
-      
-    if (error) {
-      console.error('Error fetching categories:', error);
+  async getCategories(userId: string): Promise<Category[]> {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+      }
+
+      return data.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        icon: cat.icon,
+        color: cat.color,
+        type: cat.type as 'income' | 'expense',
+        userId: cat.user_id
+      }));
+    } catch (error) {
+      console.error('Error in getCategories:', error);
       return [];
     }
-    
-    return data ? data.map(toAppCategory) : [];
   },
 
-  async createCategory(category: Omit<Category, 'id'>, userId: string) {
-    const id = crypto.randomUUID();
-    const dbCategory = {
-      ...toDbCategory({...category, id}, userId),
-      created_at: new Date().toISOString()
-    };
-    
-    const { error } = await supabase
-      .from('categories')
-      .insert([dbCategory]);
-      
-    if (error) {
-      console.error('Error creating category:', error);
-      throw error;
-    }
-      
-    return {...category, id};
-  },
+  async createCategory(category: Omit<Category, 'id' | 'userId'>, userId: string): Promise<Category> {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({
+          name: category.name,
+          icon: category.icon,
+          color: category.color,
+          type: category.type,
+          user_id: userId
+        })
+        .select()
+        .single();
 
-  async updateCategory(category: Category, userId: string) {
-    const dbCategory = toDbCategory(category, userId);
-    
-    const { error } = await supabase
-      .from('categories')
-      .update(dbCategory)
-      .eq('id', category.id);
-      
-    if (error) {
-      console.error('Error updating category:', error);
-      throw error;
-    }
-      
-    return category;
-  },
+      if (error) {
+        console.error('Error creating category:', error);
+        throw error;
+      }
 
-  async deleteCategory(id: string) {
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', id);
-      
-    if (error) {
-      console.error('Error deleting category:', error);
+      return {
+        id: data.id,
+        name: data.name,
+        icon: data.icon,
+        color: data.color,
+        type: data.type as 'income' | 'expense',
+        userId: data.user_id
+      };
+    } catch (error) {
+      console.error('Error in createCategory:', error);
       throw error;
     }
   },
 
   // Transactions
-  async getTransactions(userId: string) {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', userId);
-      
-    if (error) {
-      console.error('Error fetching transactions:', error);
+  async getTransactions(userId: string): Promise<Transaction[]> {
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('date', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching transactions:', error);
+        return [];
+      }
+
+      return data.map(trans => ({
+        id: trans.id,
+        amount: trans.amount,
+        description: trans.description,
+        date: trans.date,
+        categoryId: trans.category_id,
+        type: trans.type as 'income' | 'expense',
+        recurring: trans.recurring,
+        userId: trans.user_id
+      }));
+    } catch (error) {
+      console.error('Error in getTransactions:', error);
       return [];
     }
-    
-    return data ? data.map(toAppTransaction) : [];
   },
 
-  async createTransaction(transaction: Omit<Transaction, 'id' | 'userId'>, userId: string) {
-    const id = crypto.randomUUID();
-    const dbTransaction = {
-      ...toDbTransaction({...transaction, id, userId}),
-      created_at: new Date().toISOString()
-    };
-    
-    const { error } = await supabase
-      .from('transactions')
-      .insert([dbTransaction]);
-      
-    if (error) {
-      console.error('Error creating transaction:', error);
-      throw error;
-    }
-      
-    return {...transaction, id, userId};
-  },
+  async createTransaction(transaction: Omit<Transaction, 'id' | 'userId'>, userId: string): Promise<Transaction> {
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert({
+          amount: transaction.amount,
+          description: transaction.description,
+          date: transaction.date,
+          category_id: transaction.categoryId,
+          type: transaction.type,
+          recurring: transaction.recurring,
+          user_id: userId
+        })
+        .select()
+        .single();
 
-  async updateTransaction(transaction: Transaction) {
-    const dbTransaction = toDbTransaction(transaction);
-    
-    const { error } = await supabase
-      .from('transactions')
-      .update(dbTransaction)
-      .eq('id', transaction.id);
-      
-    if (error) {
-      console.error('Error updating transaction:', error);
-      throw error;
-    }
-      
-    return transaction;
-  },
+      if (error) {
+        console.error('Error creating transaction:', error);
+        throw error;
+      }
 
-  async deleteTransaction(id: string) {
-    const { error } = await supabase
-      .from('transactions')
-      .delete()
-      .eq('id', id);
-      
-    if (error) {
-      console.error('Error deleting transaction:', error);
+      return {
+        id: data.id,
+        amount: data.amount,
+        description: data.description,
+        date: data.date,
+        categoryId: data.category_id,
+        type: data.type as 'income' | 'expense',
+        recurring: data.recurring,
+        userId: data.user_id
+      };
+    } catch (error) {
+      console.error('Error in createTransaction:', error);
       throw error;
     }
   },
 
   // Budgets
-  async getBudgets(userId: string) {
-    const { data, error } = await supabase
-      .from('budgets')
-      .select('*')
-      .eq('user_id', userId);
-      
-    if (error) {
-      console.error('Error fetching budgets:', error);
+  async getBudgets(userId: string): Promise<Budget[]> {
+    try {
+      const { data, error } = await supabase
+        .from('budgets')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error fetching budgets:', error);
+        return [];
+      }
+
+      return data.map(budget => ({
+        id: budget.id,
+        categoryId: budget.category_id,
+        amount: budget.amount,
+        spent: budget.spent,
+        period: budget.period as 'daily' | 'weekly' | 'monthly' | 'yearly',
+        userId: budget.user_id
+      }));
+    } catch (error) {
+      console.error('Error in getBudgets:', error);
       return [];
     }
-    
-    return data ? data.map(toAppBudget) : [];
   },
 
-  async createBudget(budget: Omit<Budget, 'id' | 'userId' | 'spent'>, userId: string) {
-    const id = crypto.randomUUID();
-    const dbBudget = {
-      ...toDbBudget({...budget, id, userId, spent: 0}),
-      created_at: new Date().toISOString()
-    };
-    
-    const { error } = await supabase
-      .from('budgets')
-      .insert([dbBudget]);
-      
-    if (error) {
-      console.error('Error creating budget:', error);
+  async createBudget(budget: Omit<Budget, 'id' | 'userId' | 'spent'>, userId: string): Promise<Budget> {
+    try {
+      const { data, error } = await supabase
+        .from('budgets')
+        .insert({
+          category_id: budget.categoryId,
+          amount: budget.amount,
+          period: budget.period,
+          user_id: userId
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating budget:', error);
+        throw error;
+      }
+
+      return {
+        id: data.id,
+        categoryId: data.category_id,
+        amount: data.amount,
+        spent: data.spent,
+        period: data.period as 'daily' | 'weekly' | 'monthly' | 'yearly',
+        userId: data.user_id
+      };
+    } catch (error) {
+      console.error('Error in createBudget:', error);
       throw error;
     }
-      
-    return {...budget, id, userId, spent: 0};
   },
 
-  async updateBudget(budget: Budget) {
-    const dbBudget = toDbBudget(budget);
-    
-    const { error } = await supabase
-      .from('budgets')
-      .update(dbBudget)
-      .eq('id', budget.id);
-      
-    if (error) {
-      console.error('Error updating budget:', error);
-      throw error;
-    }
-      
-    return budget;
-  },
+  async updateBudget(budget: Budget): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('budgets')
+        .update({
+          category_id: budget.categoryId,
+          amount: budget.amount,
+          spent: budget.spent,
+          period: budget.period
+        })
+        .eq('id', budget.id);
 
-  async deleteBudget(id: string) {
-    const { error } = await supabase
-      .from('budgets')
-      .delete()
-      .eq('id', id);
-      
-    if (error) {
-      console.error('Error deleting budget:', error);
+      if (error) {
+        console.error('Error updating budget:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in updateBudget:', error);
       throw error;
     }
   },
 
   // Goals
-  async getGoals(userId: string) {
-    const { data, error } = await supabase
-      .from('financial_goals')
-      .select('*')
-      .eq('user_id', userId);
-      
-    if (error) {
-      console.error('Error fetching goals:', error);
+  async getGoals(userId: string): Promise<FinancialGoal[]> {
+    try {
+      const { data, error } = await supabase
+        .from('financial_goals')
+        .select('*')
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error fetching goals:', error);
+        return [];
+      }
+
+      return data.map(goal => ({
+        id: goal.id,
+        name: goal.name,
+        targetAmount: goal.target_amount,
+        currentAmount: goal.current_amount,
+        deadline: goal.deadline,
+        icon: goal.icon,
+        category: goal.category,
+        userId: goal.user_id
+      }));
+    } catch (error) {
+      console.error('Error in getGoals:', error);
       return [];
     }
-    
-    return data ? data.map(toAppFinancialGoal) : [];
   },
 
-  async createGoal(goal: Omit<FinancialGoal, 'id' | 'userId' | 'currentAmount'>, userId: string) {
-    const id = crypto.randomUUID();
-    const dbGoal = {
-      ...toDbFinancialGoal({...goal, id, userId, currentAmount: 0}),
-      created_at: new Date().toISOString()
-    };
-    
-    const { error } = await supabase
-      .from('financial_goals')
-      .insert([dbGoal]);
-      
-    if (error) {
-      console.error('Error creating goal:', error);
+  async createGoal(goal: Omit<FinancialGoal, 'id' | 'userId' | 'currentAmount'>, userId: string): Promise<FinancialGoal> {
+    try {
+      const { data, error } = await supabase
+        .from('financial_goals')
+        .insert({
+          name: goal.name,
+          target_amount: goal.targetAmount,
+          deadline: goal.deadline,
+          icon: goal.icon,
+          category: goal.category,
+          user_id: userId
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating goal:', error);
+        throw error;
+      }
+
+      return {
+        id: data.id,
+        name: data.name,
+        targetAmount: data.target_amount,
+        currentAmount: data.current_amount,
+        deadline: data.deadline,
+        icon: data.icon,
+        category: data.category,
+        userId: data.user_id
+      };
+    } catch (error) {
+      console.error('Error in createGoal:', error);
       throw error;
     }
-      
-    return {...goal, id, userId, currentAmount: 0};
   },
 
-  async updateGoal(goal: FinancialGoal) {
-    const dbGoal = toDbFinancialGoal(goal);
-    
-    const { error } = await supabase
-      .from('financial_goals')
-      .update(dbGoal)
-      .eq('id', goal.id);
-      
-    if (error) {
-      console.error('Error updating goal:', error);
-      throw error;
-    }
-      
-    return goal;
-  },
+  async updateGoal(goal: FinancialGoal): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('financial_goals')
+        .update({
+          name: goal.name,
+          target_amount: goal.targetAmount,
+          current_amount: goal.currentAmount,
+          deadline: goal.deadline,
+          icon: goal.icon,
+          category: goal.category
+        })
+        .eq('id', goal.id);
 
-  async deleteGoal(id: string) {
-    const { error } = await supabase
-      .from('financial_goals')
-      .delete()
-      .eq('id', id);
-      
-    if (error) {
-      console.error('Error deleting goal:', error);
+      if (error) {
+        console.error('Error updating goal:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in updateGoal:', error);
       throw error;
     }
   },
 
   // Notifications
-  async getNotifications(userId: string) {
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', userId)
-      .order('date', { ascending: false });
-      
-    if (error) {
-      console.error('Error fetching notifications:', error);
+  async getNotifications(userId: string): Promise<Notification[]> {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+      }
+
+      return data.map(notif => ({
+        id: notif.id,
+        type: notif.type as 'budget_exceeded' | 'goal_reached' | 'recurring_payment' | 'tip',
+        message: notif.message,
+        read: notif.read,
+        date: notif.date,
+        userId: notif.user_id
+      }));
+    } catch (error) {
+      console.error('Error in getNotifications:', error);
       return [];
     }
-    
-    return data ? data.map(toAppNotification) : [];
   },
 
-  async createNotification(notification: Omit<Notification, 'id' | 'userId'>, userId: string) {
-    const id = crypto.randomUUID();
-    const dbNotification = {
-      ...toDbNotification({...notification, id, userId}),
-      created_at: new Date().toISOString()
-    };
-    
-    const { error } = await supabase
-      .from('notifications')
-      .insert([dbNotification]);
-      
-    if (error) {
-      console.error('Error creating notification:', error);
-      throw error;
-    }
-      
-    return {...notification, id, userId};
-  },
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
 
-  async markNotificationAsRead(id: string) {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', id);
-      
-    if (error) {
-      console.error('Error marking notification as read:', error);
+      if (error) {
+        console.error('Error marking notification as read:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in markNotificationAsRead:', error);
       throw error;
     }
   },
 
   // Deals
-  async getDeals() {
-    const { data, error } = await supabase
-      .from('deals')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (error) {
-      console.error('Error fetching deals:', error);
+  async getDeals(): Promise<Deal[]> {
+    try {
+      const { data, error } = await supabase
+        .from('deals')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching deals:', error);
+        return [];
+      }
+
+      return data.map(deal => ({
+        id: deal.id,
+        title: deal.title,
+        description: deal.description,
+        provider: deal.provider,
+        discount: deal.discount,
+        expiryDate: deal.expiry_date,
+        category: deal.category,
+        location: deal.location,
+        url: deal.url,
+        merchant: deal.merchant,
+        featured: deal.featured,
+        validUntil: deal.valid_until,
+        image: deal.image,
+        link: deal.link,
+        couponCode: deal.coupon_code
+      }));
+    } catch (error) {
+      console.error('Error in getDeals:', error);
       return [];
     }
-    
-    return data ? data.map(toAppDeal) : [];
   },
 
-  async getDealById(id: string) {
-    const { data, error } = await supabase
-      .from('deals')
-      .select('*')
-      .eq('id', id)
-      .single();
-      
-    if (error) {
-      console.error('Error fetching deal:', error);
-      return null;
+  // Activity logging function
+  async logActivity(userId: string, action: string, entityType: string, entityId?: string, details?: any): Promise<void> {
+    try {
+      const { error } = await supabase
+        .rpc('log_activity', {
+          user_id: userId,
+          action,
+          entity_type: entityType,
+          entity_id: entityId,
+          details
+        });
+
+      if (error) {
+        console.error('Error logging activity:', error);
+      }
+    } catch (error) {
+      console.error('Error in logActivity:', error);
     }
-    
-    return data ? toAppDeal(data) : null;
   }
 };

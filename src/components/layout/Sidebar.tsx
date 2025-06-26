@@ -1,69 +1,62 @@
 
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { NavLink } from 'react-router-dom';
 import { 
-  CreditCard, 
   Home, 
+  CreditCard, 
   PieChart, 
+  BarChart3, 
   Target, 
-  DollarSign, 
   Settings, 
+  Tag, 
   Users, 
-  Tag,
-  Award 
+  Trophy, 
+  MessageCircle 
 } from 'lucide-react';
+import Logo from '../common/Logo';
+import AdminNavItem from './AdminNavItem';
 
 const Sidebar = () => {
-  const location = useLocation();
-  
-  const menuItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: Home },
-    { name: 'Transactions', path: '/transactions', icon: CreditCard },
-    { name: 'Budget', path: '/budget', icon: DollarSign },
-    { name: 'Reports', path: '/reports', icon: PieChart },
-    { name: 'Goals', path: '/goals', icon: Target },
-    { name: 'Family', path: '/family', icon: Users },
-    { name: 'Deals', path: '/deals', icon: Tag },
-    { name: 'Challenges', path: '/challenges', icon: Award },
-    { name: 'Settings', path: '/settings', icon: Settings }
+  const navItems = [
+    { to: '/dashboard', icon: Home, label: 'Dashboard' },
+    { to: '/transactions', icon: CreditCard, label: 'Transactions' },
+    { to: '/budget', icon: PieChart, label: 'Budget' },
+    { to: '/reports', icon: BarChart3, label: 'Rapports' },
+    { to: '/goals', icon: Target, label: 'Objectifs' },
+    { to: '/deals', icon: Tag, label: 'Offres' },
+    { to: '/family', icon: Users, label: 'Famille' },
+    { to: '/challenges', icon: Trophy, label: 'Défis' },
+    { to: '/assistant', icon: MessageCircle, label: 'Assistant' },
+    { to: '/settings', icon: Settings, label: 'Paramètres' },
   ];
 
   return (
-    <aside className="hidden md:flex w-64 flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-      <div className="py-8 px-6 text-center border-b border-gray-200 dark:border-gray-700">
-        <Link to="/dashboard">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-masroufi-primary to-masroufi-secondary bg-clip-text text-transparent">
-            Masroufi
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Budget Compass</p>
-        </Link>
+    <div className="w-64 bg-white dark:bg-gray-900 shadow-lg h-screen flex flex-col">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+        <Logo size="md" />
       </div>
-      <nav className="flex-1 py-6 px-4">
-        <ul className="space-y-1">
-          {menuItems.map((item) => (
-            <li key={item.path}>
-              <Link
-                to={item.path}
-                className={cn(
-                  "flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-                  location.pathname === item.path && "bg-masroufi-primary/10 text-masroufi-primary dark:bg-masroufi-primary/20 dark:text-masroufi-primary"
-                )}
-              >
-                <item.icon className="h-5 w-5 mr-3" />
-                <span>{item.name}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+      
+      <nav className="flex-1 p-4 space-y-2">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              `flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+              }`
+            }
+          >
+            <item.icon className="mr-2 h-4 w-4" />
+            {item.label}
+          </NavLink>
+        ))}
+        
+        {/* Admin navigation item - only shown to admins */}
+        <AdminNavItem />
       </nav>
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-          <p className="text-sm text-center font-medium">
-            Made with ❤️ for better finances
-          </p>
-        </div>
-      </div>
-    </aside>
+    </div>
   );
 };
 

@@ -19,7 +19,9 @@ import Intro from './pages/Intro';
 import Family from './pages/family/Family';
 import Challenges from './pages/gamification/Challenges';
 import Assistant from './pages/assistant/Assistant';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import PrivateRoute from './components/auth/PrivateRoute';
+import AdminRoute from './components/auth/AdminRoute';
 import './App.css';
 
 function App() {
@@ -46,6 +48,13 @@ function App() {
           <Route path="challenges" element={<Challenges />} />
           <Route path="assistant" element={<Assistant />} />
           <Route path="settings" element={<Settings />} />
+          
+          {/* Admin routes */}
+          <Route path="admin" element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          } />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

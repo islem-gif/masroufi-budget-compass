@@ -2,13 +2,14 @@
 export interface User {
   id: string;
   email: string;
-  phone?: string;
   firstName: string;
   lastName: string;
+  phone?: string;
   avatar?: string;
   darkMode: boolean;
   language: 'fr' | 'en';
   currency: string;
+  role?: 'admin' | 'user';
 }
 
 export interface Category {
@@ -17,6 +18,7 @@ export interface Category {
   icon: string;
   color: string;
   type: 'income' | 'expense';
+  userId: string;
 }
 
 export interface Transaction {
@@ -46,8 +48,8 @@ export interface FinancialGoal {
   currentAmount: number;
   deadline: string;
   icon: string;
+  category?: string;
   userId: string;
-  category?: string; // Added missing property
 }
 
 export interface Notification {
@@ -69,10 +71,50 @@ export interface Deal {
   category: string;
   location?: string;
   url?: string;
-  merchant?: string; // Added missing property
-  featured?: boolean; // Added missing property
-  validUntil?: string; // Added missing property
-  image?: string; // Added for completeness
-  link?: string; // Added for completeness
-  couponCode?: string; // Added for completeness
+  merchant?: string;
+  featured?: boolean;
+  validUntil?: string;
+  image?: string;
+  link?: string;
+  couponCode?: string;
+}
+
+export interface ActivityLog {
+  id: string;
+  userId: string;
+  action: string;
+  entityType: string;
+  entityId?: string;
+  details?: any;
+  createdAt: string;
+}
+
+export interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  reward: number;
+  completed: boolean;
+  progress: number;
+  target: number;
+  deadline: string;
+  category: string;
+}
+
+export interface FamilyMember {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'member';
+  joinedAt: string;
+  avatar?: string;
+}
+
+export interface FamilyGroup {
+  id: string;
+  name: string;
+  description?: string;
+  members: FamilyMember[];
+  createdAt: string;
+  ownerId: string;
 }
