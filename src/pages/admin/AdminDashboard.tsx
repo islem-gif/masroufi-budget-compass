@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -32,7 +31,7 @@ interface ActivityLog {
     first_name: string;
     last_name: string;
     email: string;
-  };
+  } | null;
 }
 
 interface DashboardStats {
@@ -70,12 +69,12 @@ const AdminDashboard = () => {
       if (usersError) throw usersError;
       setUsers(usersData || []);
 
-      // Load activity logs
+      // Load activity logs with proper join syntax
       const { data: activityData, error: activityError } = await supabase
         .from('activity_logs')
         .select(`
           *,
-          users:user_id (
+          users!activity_logs_user_id_fkey (
             first_name,
             last_name,
             email
@@ -84,8 +83,13 @@ const AdminDashboard = () => {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (activityError) throw activityError;
-      setActivityLogs(activityData || []);
+      if (activityError) {
+        console.error('Activity logs error:', activityError);
+        // Set empty array if join fails
+        setActivityLogs([]);
+      } else {
+        setActivityLogs(activityData || []);
+      }
 
       // Load statistics
       const [transactionsCount, goalsCount] = await Promise.all([
@@ -381,10 +385,10 @@ const AdminDashboard = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">
-                              {log.users?.first_name} {log.users?.last_name}
+                              {log.users?.first_name || 'Inconnu'} {log.users?.last_name || ''}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {log.users?.email}
+                              {log.users?.email || 'Email inconnu'}
                             </div>
                           </div>
                         </TableCell>

@@ -1,4 +1,3 @@
-
 import { User, Category, Transaction, Budget, FinancialGoal, Notification, Deal } from '@/types';
 
 // Mock user data
@@ -16,16 +15,16 @@ export const mockUser: User = {
 
 // Mock categories
 export const mockCategories: Category[] = [
-  { id: '1', name: 'Salary', icon: 'piggy-bank', color: '#4CAF50', type: 'income' },
-  { id: '2', name: 'Freelance', icon: 'credit-card', color: '#2196F3', type: 'income' },
-  { id: '3', name: 'Gifts', icon: 'gift', color: '#9C27B0', type: 'income' },
-  { id: '4', name: 'Food & Drinks', icon: 'utensils', color: '#FF5722', type: 'expense' },
-  { id: '5', name: 'Transportation', icon: 'car', color: '#607D8B', type: 'expense' },
-  { id: '6', name: 'Shopping', icon: 'shopping-bag', color: '#FFC107', type: 'expense' },
-  { id: '7', name: 'Bills', icon: 'file-text', color: '#795548', type: 'expense' },
-  { id: '8', name: 'Entertainment', icon: 'film', color: '#E91E63', type: 'expense' },
-  { id: '9', name: 'Health', icon: 'activity', color: '#00BCD4', type: 'expense' },
-  { id: '10', name: 'Education', icon: 'book', color: '#3F51B5', type: 'expense' },
+  { id: '1', name: 'Salary', icon: 'piggy-bank', color: '#4CAF50', type: 'income', userId: '1' },
+  { id: '2', name: 'Freelance', icon: 'credit-card', color: '#2196F3', type: 'income', userId: '1' },
+  { id: '3', name: 'Gifts', icon: 'gift', color: '#9C27B0', type: 'income', userId: '1' },
+  { id: '4', name: 'Food & Drinks', icon: 'utensils', color: '#FF5722', type: 'expense', userId: '1' },
+  { id: '5', name: 'Transportation', icon: 'car', color: '#607D8B', type: 'expense', userId: '1' },
+  { id: '6', name: 'Shopping', icon: 'shopping-bag', color: '#FFC107', type: 'expense', userId: '1' },
+  { id: '7', name: 'Bills', icon: 'file-text', color: '#795548', type: 'expense', userId: '1' },
+  { id: '8', name: 'Entertainment', icon: 'film', color: '#E91E63', type: 'expense', userId: '1' },
+  { id: '9', name: 'Health', icon: 'activity', color: '#00BCD4', type: 'expense', userId: '1' },
+  { id: '10', name: 'Education', icon: 'book', color: '#3F51B5', type: 'expense', userId: '1' },
 ];
 
 // Mock transactions
