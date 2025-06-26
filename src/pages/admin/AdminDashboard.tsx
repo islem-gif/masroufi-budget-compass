@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -27,11 +28,6 @@ interface ActivityLog {
   entity_id: string;
   details: any;
   created_at: string;
-  users: {
-    first_name: string;
-    last_name: string;
-    email: string;
-  } | null;
 }
 
 interface DashboardStats {
@@ -69,23 +65,15 @@ const AdminDashboard = () => {
       if (usersError) throw usersError;
       setUsers(usersData || []);
 
-      // Load activity logs with proper join syntax
+      // Load activity logs without join to avoid the error
       const { data: activityData, error: activityError } = await supabase
         .from('activity_logs')
-        .select(`
-          *,
-          users!activity_logs_user_id_fkey (
-            first_name,
-            last_name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (activityError) {
         console.error('Activity logs error:', activityError);
-        // Set empty array if join fails
         setActivityLogs([]);
       } else {
         setActivityLogs(activityData || []);
@@ -180,6 +168,16 @@ const AdminDashboard = () => {
         description: "Impossible de mettre à jour le rôle de l'utilisateur."
       });
     }
+  };
+
+  const getUserName = (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    return user ? `${user.first_name} ${user.last_name}` : 'Utilisateur inconnu';
+  };
+
+  const getUserEmail = (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    return user ? user.email : 'Email inconnu';
   };
 
   const getActionIcon = (action: string) => {
@@ -385,10 +383,10 @@ const AdminDashboard = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">
-                              {log.users?.first_name || 'Inconnu'} {log.users?.last_name || ''}
+                              {getUserName(log.user_id)}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {log.users?.email || 'Email inconnu'}
+                              {getUserEmail(log.user_id)}
                             </div>
                           </div>
                         </TableCell>
