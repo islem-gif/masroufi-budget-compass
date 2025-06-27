@@ -1,3 +1,4 @@
+
 import { User, Category, Transaction, Budget, FinancialGoal, Notification, Deal } from '@/types';
 
 // Mock user data
