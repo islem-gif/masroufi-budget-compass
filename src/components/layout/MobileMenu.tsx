@@ -12,7 +12,6 @@ import {
   Trophy, 
   MessageCircle 
 } from 'lucide-react';
-import AdminNavItem from './AdminNavItem';
 
 const MobileMenu = () => {
   const navItems = [
@@ -24,7 +23,6 @@ const MobileMenu = () => {
     { to: '/deals', icon: Tag, label: 'Offres' },
     { to: '/family', icon: Users, label: 'Famille' },
     { to: '/challenges', icon: Trophy, label: 'Défis' },
-    { to: '/assistant', icon: MessageCircle, label: 'Assistant' },
     { to: '/settings', icon: Settings, label: 'Paramètres' },
   ];
 
@@ -61,11 +59,6 @@ const MobileMenu = () => {
           <Settings className="h-5 w-5 mb-1" />
           <span className="truncate w-full text-center">Plus</span>
         </NavLink>
-      </div>
-      
-      {/* Admin item for mobile - shown in a separate row if user is admin */}
-      <div className="border-t border-gray-200 dark:border-gray-700">
-        <AdminNavItem />
       </div>
     </div>
   );

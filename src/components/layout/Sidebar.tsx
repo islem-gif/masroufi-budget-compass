@@ -13,7 +13,6 @@ import {
   MessageCircle 
 } from 'lucide-react';
 import Logo from '../common/Logo';
-import AdminNavItem from './AdminNavItem';
 
 const Sidebar = () => {
   const navItems = [
@@ -25,7 +24,6 @@ const Sidebar = () => {
     { to: '/deals', icon: Tag, label: 'Offres' },
     { to: '/family', icon: Users, label: 'Famille' },
     { to: '/challenges', icon: Trophy, label: 'Défis' },
-    { to: '/assistant', icon: MessageCircle, label: 'Assistant' },
     { to: '/settings', icon: Settings, label: 'Paramètres' },
   ];
 
@@ -52,9 +50,6 @@ const Sidebar = () => {
             {item.label}
           </NavLink>
         ))}
-        
-        {/* Admin navigation item - only shown to admins */}
-        <AdminNavItem />
       </nav>
     </div>
   );
