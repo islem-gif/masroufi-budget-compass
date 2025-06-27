@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { 
   User, 
@@ -55,13 +56,12 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   
-  // Simplified authentication state management
+  // Authentication state management
   useEffect(() => {
     let mounted = true;
     
     const setupAuth = async () => {
       try {
-        // Set up auth state change listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return;
@@ -69,7 +69,6 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
             console.log("Auth state changed:", event, session?.user?.id);
             
             if (session && session.user) {
-              // User is signed in - defer user data loading to prevent deadlock
               setIsAuthenticated(true);
               
               setTimeout(async () => {
@@ -81,9 +80,8 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
                   if (userData) {
                     console.log("User data retrieved:", userData);
                     setUser(userData);
-                    loadUserData(session.user.id);
+                    await loadUserData(session.user.id);
                   } else {
-                    // Create new user profile
                     console.log("Creating new user profile");
                     const newUser: User = {
                       id: session.user.id,
@@ -99,14 +97,13 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
                     
                     await supabaseOperations.createUser(newUser, session.user.id);
                     setUser(newUser);
-                    initializeUserData(session.user.id);
+                    await initializeUserData(session.user.id);
                   }
                 } catch (error) {
                   console.error("Error handling auth state change:", error);
                 }
               }, 0);
             } else {
-              // User is signed out
               if (mounted) {
                 setUser(null);
                 setIsAuthenticated(false);
@@ -116,9 +113,7 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
           }
         );
         
-        // Check current session
         const { data: { session } } = await supabase.auth.getSession();
-        // The onAuthStateChange above will handle the session
         
         return () => {
           subscription.unsubscribe();
@@ -129,8 +124,6 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
     
     setupAuth();
-    
-    // Load deals for all users
     loadDeals();
     
     return () => {
@@ -140,32 +133,41 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   
   const loadUserData = async (userId: string) => {
     try {
+      console.log("Loading user data for:", userId);
+      
       const userCategories = await supabaseOperations.getCategories(userId);
+      console.log("Categories loaded:", userCategories.length);
       setCategories(userCategories.length ? userCategories : mockCategories);
       
       const userTransactions = await supabaseOperations.getTransactions(userId);
-      setTransactions(userTransactions.length ? userTransactions : mockTransactions);
+      console.log("Transactions loaded:", userTransactions.length);
+      setTransactions(userTransactions);
       
       const userBudgets = await supabaseOperations.getBudgets(userId);
-      setBudgets(userBudgets.length ? userBudgets : mockBudgets);
+      console.log("Budgets loaded:", userBudgets.length);
+      setBudgets(userBudgets);
       
       const userGoals = await supabaseOperations.getGoals(userId);
-      setGoals(userGoals.length ? userGoals : mockGoals);
+      console.log("Goals loaded:", userGoals.length);
+      setGoals(userGoals);
       
       const userNotifications = await supabaseOperations.getNotifications(userId);
+      console.log("Notifications loaded:", userNotifications.length);
       setNotifications(userNotifications.length ? userNotifications : mockNotifications);
     } catch (error) {
       console.error("Error loading user data:", error);
       setCategories(mockCategories);
-      setTransactions(mockTransactions);
-      setBudgets(mockBudgets);
-      setGoals(mockGoals);
+      setTransactions([]);
+      setBudgets([]);
+      setGoals([]);
       setNotifications(mockNotifications);
     }
   };
   
   const initializeUserData = async (userId: string) => {
     try {
+      console.log("Initializing user data for new user:", userId);
+      
       for (const category of mockCategories) {
         await supabaseOperations.createCategory(
           {
@@ -206,9 +208,8 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
     setNotifications([]);
   };
 
-  // User Authentication - simplified
+  // User Authentication
   const registerUser = async (email: string, password: string, firstName: string, lastName: string) => {
-    // Registration is handled by Supabase Auth in the Register component
     const newUser: User = {
       id: crypto.randomUUID(),
       email,
@@ -223,7 +224,6 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const loginUser = (email: string, password: string) => {
-    // This function is kept for compatibility but login is handled by Supabase Auth
     console.log("loginUser called - handled by Supabase Auth");
   };
 
@@ -239,12 +239,21 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const addTransaction = async (transaction: Omit<Transaction, 'id' | 'userId'>) => {
-    if (!user) return;
+    if (!user) {
+      console.error("No user found for adding transaction");
+      return;
+    }
     
     try {
+      console.log("Adding transaction to database:", transaction);
       const newTransaction = await supabaseOperations.createTransaction(transaction, user.id);
+      console.log("Transaction created successfully:", newTransaction);
       
-      setTransactions(prev => [...prev, newTransaction]);
+      setTransactions(prev => {
+        const updated = [...prev, newTransaction];
+        console.log("Transactions updated, total count:", updated.length);
+        return updated;
+      });
   
       if (transaction.type === 'expense') {
         const relevantBudget = budgets.find(b => b.categoryId === transaction.categoryId);
@@ -259,11 +268,21 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const addBudget = async (budget: Omit<Budget, 'id' | 'userId' | 'spent'>) => {
-    if (!user) return;
+    if (!user) {
+      console.error("No user found for adding budget");
+      return;
+    }
     
     try {
+      console.log("Adding budget to database:", budget);
       const newBudget = await supabaseOperations.createBudget(budget, user.id);
-      setBudgets(prev => [...prev, newBudget]);
+      console.log("Budget created successfully:", newBudget);
+      
+      setBudgets(prev => {
+        const updated = [...prev, newBudget];
+        console.log("Budgets updated, total count:", updated.length);
+        return updated;
+      });
     } catch (error) {
       console.error("Error adding budget:", error);
       throw error;
@@ -275,8 +294,10 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
       const budgetToUpdate = budgets.find(budget => budget.id === id);
       if (!budgetToUpdate) return;
       
+      console.log("Updating budget:", id, "spent:", spent);
       const updatedBudget = { ...budgetToUpdate, spent };
       await supabaseOperations.updateBudget(updatedBudget);
+      console.log("Budget updated successfully");
       
       setBudgets(
         budgets.map(budget => 
@@ -290,11 +311,21 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const addGoal = async (goal: Omit<FinancialGoal, 'id' | 'userId' | 'currentAmount'>) => {
-    if (!user) return;
+    if (!user) {
+      console.error("No user found for adding goal");
+      return;
+    }
     
     try {
+      console.log("Adding goal to database:", goal);
       const newGoal = await supabaseOperations.createGoal(goal, user.id);
-      setGoals(prev => [...prev, newGoal]);
+      console.log("Goal created successfully:", newGoal);
+      
+      setGoals(prev => {
+        const updated = [...prev, newGoal];
+        console.log("Goals updated, total count:", updated.length);
+        return updated;
+      });
     } catch (error) {
       console.error("Error adding goal:", error);
       throw error;
@@ -306,8 +337,10 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
       const goalToUpdate = goals.find(goal => goal.id === id);
       if (!goalToUpdate) return;
       
+      console.log("Updating goal:", id, "amount:", amount);
       const updatedGoal = { ...goalToUpdate, currentAmount: amount };
       await supabaseOperations.updateGoal(updatedGoal);
+      console.log("Goal updated successfully");
       
       setGoals(
         goals.map(goal => 
@@ -322,7 +355,9 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const markNotificationAsRead = async (id: string) => {
     try {
+      console.log("Marking notification as read:", id);
       await supabaseOperations.markNotificationAsRead(id);
+      console.log("Notification marked as read successfully");
       
       setNotifications(
         notifications.map(notification => 
@@ -338,11 +373,12 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   const toggleDarkMode = async () => {
     if (user) {
       try {
+        console.log("Toggling dark mode for user:", user.id);
         const updatedUser = { ...user, darkMode: !user.darkMode };
         await supabaseOperations.updateUser(updatedUser);
+        console.log("Dark mode updated successfully");
         
         setUser(updatedUser);
-        
         document.documentElement.classList.toggle('dark', updatedUser.darkMode);
       } catch (error) {
         console.error("Error toggling dark mode:", error);
@@ -354,8 +390,10 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   const changeLanguage = async (language: 'fr' | 'en') => {
     if (user) {
       try {
+        console.log("Changing language for user:", user.id, "to:", language);
         const updatedUser = { ...user, language };
         await supabaseOperations.updateUser(updatedUser);
+        console.log("Language updated successfully");
         
         setUser(updatedUser);
       } catch (error) {
@@ -368,8 +406,10 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   const changeCurrency = async (currency: string) => {
     if (user) {
       try {
+        console.log("Changing currency for user:", user.id, "to:", currency);
         const updatedUser = { ...user, currency };
         await supabaseOperations.updateUser(updatedUser);
+        console.log("Currency updated successfully");
         
         setUser(updatedUser);
       } catch (error) {

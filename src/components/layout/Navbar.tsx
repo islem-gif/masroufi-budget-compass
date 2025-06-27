@@ -17,7 +17,6 @@ import {
 const Navbar = () => {
   const { user, toggleDarkMode, logoutUser, notifications } = useMasroufi();
   const { toast } = useToast();
-  const [showNotifications, setShowNotifications] = useState(false);
   
   const unreadNotifications = notifications.filter(n => !n.read);
 
@@ -67,12 +66,6 @@ const Navbar = () => {
                   </DropdownMenuItem>
                 ))
               )}
-              <DropdownMenuSeparator />
-              <Link to="/notifications" className="block w-full">
-                <DropdownMenuItem className="cursor-pointer text-center text-blue-500">
-                  View all notifications
-                </DropdownMenuItem>
-              </Link>
             </DropdownMenuContent>
           </DropdownMenu>
           
@@ -109,9 +102,6 @@ const Navbar = () => {
                 {user?.firstName} {user?.lastName}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <Link to="/profile">
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-              </Link>
               <Link to="/settings">
                 <DropdownMenuItem>Settings</DropdownMenuItem>
               </Link>
