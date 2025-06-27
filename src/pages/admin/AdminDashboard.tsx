@@ -28,6 +28,11 @@ interface ActivityLog {
   entity_id: string;
   details: any;
   created_at: string;
+  users: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
 }
 
 interface DashboardStats {
@@ -65,19 +70,22 @@ const AdminDashboard = () => {
       if (usersError) throw usersError;
       setUsers(usersData || []);
 
-      // Load activity logs without join to avoid the error
+      // Load activity logs
       const { data: activityData, error: activityError } = await supabase
         .from('activity_logs')
-        .select('*')
+        .select(`
+          *,
+          users:user_id (
+            first_name,
+            last_name,
+            email
+          )
+        `)
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (activityError) {
-        console.error('Activity logs error:', activityError);
-        setActivityLogs([]);
-      } else {
-        setActivityLogs(activityData || []);
-      }
+      if (activityError) throw activityError;
+      setActivityLogs(activityData || []);
 
       // Load statistics
       const [transactionsCount, goalsCount] = await Promise.all([
@@ -168,16 +176,6 @@ const AdminDashboard = () => {
         description: "Impossible de mettre à jour le rôle de l'utilisateur."
       });
     }
-  };
-
-  const getUserName = (userId: string) => {
-    const user = users.find(u => u.id === userId);
-    return user ? `${user.first_name} ${user.last_name}` : 'Utilisateur inconnu';
-  };
-
-  const getUserEmail = (userId: string) => {
-    const user = users.find(u => u.id === userId);
-    return user ? user.email : 'Email inconnu';
   };
 
   const getActionIcon = (action: string) => {
@@ -383,10 +381,10 @@ const AdminDashboard = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">
-                              {getUserName(log.user_id)}
+                              {log.users?.first_name} {log.users?.last_name}
                             </div>
                             <div className="text-sm text-muted-foreground">
-                              {getUserEmail(log.user_id)}
+                              {log.users?.email}
                             </div>
                           </div>
                         </TableCell>

@@ -362,10 +362,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      demote_admin_to_user: {
-        Args: { user_email: string }
-        Returns: string
-      }
       log_activity: {
         Args: {
           user_id: string
@@ -375,10 +371,6 @@ export type Database = {
           details?: Json
         }
         Returns: undefined
-      }
-      promote_user_to_admin: {
-        Args: { user_email: string }
-        Returns: string
       }
     }
     Enums: {
