@@ -26,16 +26,18 @@ const AddTransaction = () => {
   const [date, setDate] = useState<Date>(new Date());
   const [recurring, setRecurring] = useState<boolean>(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!amount || !description || !categoryId) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
-      return;
-    }
-    
-    // Créer la transaction
-    addTransaction({
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!amount || !description || !categoryId) {
+    toast.error("Veuillez remplir tous les champs obligatoires");
+    return;
+  }
+  
+  console.log("Transaction payload:", { amount, description, categoryId, type, date, recurring });
+  
+  try {
+    await addTransaction({
       amount: Number(amount),
       description,
       categoryId,
@@ -43,11 +45,14 @@ const AddTransaction = () => {
       date: date.toISOString(),
       recurring
     });
-    
     toast.success("Transaction ajoutée avec succès!");
     navigate('/transactions');
-  };
-  
+  } catch (error) {
+    console.error("Error adding transaction:", error);
+    toast.error("Erreur lors de l'ajout de la transaction");
+  }
+};
+
   return (
     <div className="container max-w-md mx-auto p-4">
       <Card className="w-full">

@@ -132,63 +132,69 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, []);
   
   const loadUserData = async (userId: string) => {
-    try {
-      console.log("Loading user data for:", userId);
-      
-      const userCategories = await supabaseOperations.getCategories(userId);
-      console.log("Categories loaded:", userCategories.length);
-      setCategories(userCategories.length ? userCategories : mockCategories);
-      
-      const userTransactions = await supabaseOperations.getTransactions(userId);
-      console.log("Transactions loaded:", userTransactions.length);
-      setTransactions(userTransactions);
-      
-      const userBudgets = await supabaseOperations.getBudgets(userId);
-      console.log("Budgets loaded:", userBudgets.length);
-      setBudgets(userBudgets);
-      
-      const userGoals = await supabaseOperations.getGoals(userId);
-      console.log("Goals loaded:", userGoals.length);
-      setGoals(userGoals);
-      
-      const userNotifications = await supabaseOperations.getNotifications(userId);
-      console.log("Notifications loaded:", userNotifications.length);
-      setNotifications(userNotifications.length ? userNotifications : mockNotifications);
-    } catch (error) {
-      console.error("Error loading user data:", error);
-      setCategories(mockCategories);
-      setTransactions([]);
-      setBudgets([]);
-      setGoals([]);
-      setNotifications(mockNotifications);
+  try {
+    console.log("Loading user data for:", userId);
+    
+    const userCategories = await supabaseOperations.getCategories(userId);
+    console.log("Categories loaded:", userCategories.length);
+    if (userCategories.length === 0) {
+      await initializeUserData(userId);
+      const initializedCategories = await supabaseOperations.getCategories(userId);
+      setCategories(initializedCategories.length > 0 ? initializedCategories : mockCategories);
+    } else {
+      setCategories(userCategories);
     }
-  };
+    
+    const userTransactions = await supabaseOperations.getTransactions(userId);
+    console.log("Transactions loaded:", userTransactions.length);
+    setTransactions(userTransactions);
+    
+    const userBudgets = await supabaseOperations.getBudgets(userId);
+    console.log("Budgets loaded:", userBudgets.length);
+    setBudgets(userBudgets);
+    
+    const userGoals = await supabaseOperations.getGoals(userId);
+    console.log("Goals loaded:", userGoals.length);
+    setGoals(userGoals);
+    
+    const userNotifications = await supabaseOperations.getNotifications(userId);
+    console.log("Notifications loaded:", userNotifications.length);
+    setNotifications(userNotifications.length > 0 ? userNotifications : mockNotifications);
+  } catch (error) {
+    console.error("Error loading user data:", error);
+    setCategories(mockCategories);
+    setTransactions([]);
+    setBudgets([]);
+    setGoals([]);
+    setNotifications(mockNotifications);
+  }
+};
   
   const initializeUserData = async (userId: string) => {
-    try {
-      console.log("Initializing user data for new user:", userId);
-      
-      for (const category of mockCategories) {
-        await supabaseOperations.createCategory(
-          {
-            name: category.name,
-            icon: category.icon,
-            color: category.color,
-            type: category.type
-          }, 
-          userId
-        );
-      }
-      
-      setCategories(mockCategories);
-      setTransactions([]);
-      setBudgets([]);
-      setGoals([]);
-      setNotifications([]);
-    } catch (error) {
-      console.error("Error initializing user data:", error);
+  try {
+    console.log("Initializing user data for new user:", userId);
+    
+    for (const category of mockCategories) {
+      await supabaseOperations.createCategory(
+        {
+          name: category.name,
+          icon: category.icon,
+          color: category.color,
+          type: category.type
+        }, 
+        userId
+      );
     }
-  };
+    
+    setCategories(mockCategories); // Set immediately to reflect in UI
+    setTransactions([]);
+    setBudgets([]);
+    setGoals([]);
+    setNotifications([]);
+  } catch (error) {
+    console.error("Error initializing user data:", error);
+  }
+};
   
   const loadDeals = async () => {
     try {

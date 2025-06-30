@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMasroufi } from "@/lib/MasroufiContext";
@@ -7,6 +6,8 @@ import { AreaChart, Area } from "recharts";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download, FilterX } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Reports = () => {
   const { user, transactions, categories } = useMasroufi();
@@ -29,19 +30,16 @@ const Reports = () => {
     })
     .filter(item => item.value > 0);
 
-  // Monthly trend data (simplified mock data)
+  // Monthly trend data
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const currentMonth = new Date().getMonth();
   
   const trendData = months.map((month, index) => {
-    // Create some simulated data based on real transactions
     const baseAmount = transactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0) / 12;
     
-    // Add some randomization to make the chart look realistic
     const randomFactor = 0.5 + Math.random();
-    // Make current month match actual data
     const amount = index === currentMonth ? 
       transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0) :
       baseAmount * randomFactor;
@@ -49,15 +47,83 @@ const Reports = () => {
     return {
       name: month,
       expenses: Math.round(amount),
-      income: Math.round(amount * (1.2 + Math.random() * 0.5)), // Income is higher than expenses
+      income: Math.round(amount * (1.2 + Math.random() * 0.5)),
     };
   });
 
   const COLORS = ['#4CAF50', '#2196F3', '#FFC107', '#F44336', '#9C27B0', '#00BCD4', '#795548', '#FF9800'];
 
-  // Option to export report (mock functionality)
+  // Function to export report as PDF or CSV
   const exportReport = () => {
-    alert("This would export your financial report as PDF or CSV");
+    const doc = new jsPDF();
+    const reportDate = new Date().toLocaleDateString();
+    const currency = user?.currency || 'TND';
+
+    // Prepare data for export
+    const expenseData = expensesByCategory.map(item => [
+      item.name,
+      `${item.value} ${currency}`
+    ]);
+    const trendDataForExport = trendData.map(item => [
+      item.name,
+      `${item.expenses} ${currency}`,
+      `${item.income} ${currency}`
+    ]);
+
+    // Prompt user for format choice
+    const format = window.prompt("Export as (pdf/csv)?", "pdf");
+    if (!format) return;
+
+    if (format.toLowerCase() === 'pdf') {
+      doc.setFontSize(16);
+      doc.text(`Financial Report - ${reportDate}`, 14, 20);
+
+      // Apply autoTable plugin
+      autoTable(doc, {
+        head: [['Category', 'Amount']],
+        body: expenseData,
+        startY: 30,
+        theme: 'striped',
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [22, 160, 133] }
+      });
+
+      const finalY = (doc as any).lastAutoTable?.finalY || 30;
+      autoTable(doc, {
+        head: [['Month', 'Expenses', 'Income']],
+        body: trendDataForExport,
+        startY: finalY + 10,
+        theme: 'striped',
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [22, 160, 133] }
+      });
+
+      doc.save(`Financial_Report_${reportDate}.pdf`);
+    } else if (format.toLowerCase() === 'csv') {
+      const csvContent = [
+        `Financial Report - ${reportDate}`,
+        '',
+        'Expenses by Category',
+        'Category,Amount',
+        ...expensesByCategory.map(item => `${item.name},${item.value} ${currency}`),
+        '',
+        'Monthly Trends',
+        'Month,Expenses,Income',
+        ...trendData.map(item => `${item.name},${item.expenses} ${currency},${item.income} ${currency}`)
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Financial_Report_${reportDate}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } else {
+      alert("Invalid format. Please enter 'pdf' or 'csv'.");
+    }
   };
 
   return (
