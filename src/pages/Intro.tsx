@@ -326,21 +326,21 @@ const Intro = () => {
                   <div className="flex items-start">
                     <Phone className="mr-3 text-masroufi-primary" />
                     <div>
-                      <p className="font-medium">Téléphone</p>
+                      <p className="font-medium" style="text-align: left">Téléphone</p>
                       <p className="text-gray-600 dark:text-gray-300">+216 71 123 456</p>
                     </div>
                   </div>
                   <div className="flex items-start">
                     <Mail className="mr-3 text-masroufi-primary" />
                     <div>
-                      <p className="font-medium">Email</p>
+                      <p className="font-medium" style="text-align: left">Email</p>
                       <p className="text-gray-600 dark:text-gray-300">contact@masroufi.com</p>
                     </div>
                   </div>
                   <div className="flex items-start">
                     <MapPin className="mr-3 text-masroufi-primary" />
                     <div>
-                      <p className="font-medium">Adresse</p>
+                      <p className="font-medium" style="text-align: left">Adresse</p>
                       <p className="text-gray-600 dark:text-gray-300">123 Rue Finance, Tunis 1002, Tunisie</p>
                     </div>
                   </div>
