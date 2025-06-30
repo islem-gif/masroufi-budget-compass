@@ -9,8 +9,7 @@ import {
   Settings, 
   Tag, 
   Users, 
-  Trophy, 
-  MessageCircle 
+  Trophy 
 } from 'lucide-react';
 import Logo from '../common/Logo';
 
@@ -19,12 +18,12 @@ const Sidebar = () => {
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/transactions', icon: CreditCard, label: 'Transactions' },
     { to: '/budget', icon: PieChart, label: 'Budget' },
-    { to: '/reports', icon: BarChart3, label: 'Rapports' },
-    { to: '/goals', icon: Target, label: 'Objectifs' },
-    { to: '/deals', icon: Tag, label: 'Offres' },
-    { to: '/family', icon: Users, label: 'Famille' },
-    { to: '/challenges', icon: Trophy, label: 'Défis' },
-    { to: '/settings', icon: Settings, label: 'Paramètres' },
+    { to: '/reports', icon: BarChart3, label: 'Reports' },
+    { to: '/goals', icon: Target, label: 'Goals' },
+    { to: '/deals', icon: Tag, label: 'Deals' },
+    { to: '/family', icon: Users, label: 'Family' },
+    { to: '/challenges', icon: Trophy, label: 'Challenges' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   return (
