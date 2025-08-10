@@ -208,8 +208,14 @@ const Login = () => {
                   className="text-primary hover:text-primary/80 hover:underline font-medium"
                   disabled={isLoading}
                 >
-                  S'inscrire
+                  Créer un compte
                 </button>
+              </div>
+              
+              <div className="text-center mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-xs text-blue-700">
+                  ⚠️ Si c'est votre première visite, vous devez d'abord créer un compte en cliquant sur "Créer un compte"
+                </p>
               </div>
             </CardFooter>
           </form>
