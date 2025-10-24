@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMasroufi } from '@/lib/MasroufiContext';
@@ -8,10 +7,29 @@ import { ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import AdminDashboard from './AdminDashboard';
 
 const Dashboard = () => {
   const { user, transactions, categories } = useMasroufi();
   const navigate = useNavigate();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
+
+  // Redirect to admin dashboard if user is admin
+  if (adminLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAdmin) {
+    return <AdminDashboard />;
+  }
   
   // Filter recent transactions
   const recentTransactions = transactions

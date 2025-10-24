@@ -18,6 +18,7 @@ import ResetPassword from './pages/auth/ResetPassword';
 import Intro from './pages/Intro';
 import Family from './pages/family/Family';
 import Challenges from './pages/gamification/Challenges';
+import AdminDashboard from './pages/AdminDashboard';
 import PrivateRoute from './components/auth/PrivateRoute';
 import './App.css';
 
@@ -34,6 +35,7 @@ function App() {
         {/* Protected routes */}
         <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="admin" element={<AdminDashboard />} />
           <Route path="transactions" element={<Transactions />} />
           <Route path="transactions/add" element={<AddTransaction />} />
           <Route path="budget" element={<Budget />} />
