@@ -41,6 +41,7 @@ interface UserData {
   last_name: string;
   created_at: string;
   role?: 'admin' | 'user';
+  last_sign_in_at?: string;
 }
 
 export const UserManagementTable = () => {
@@ -48,6 +49,9 @@ export const UserManagementTable = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 10;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [addUserOpen, setAddUserOpen] = useState(false);
@@ -76,10 +80,18 @@ export const UserManagementTable = () => {
 
       if (rolesError) throw rolesError;
 
-      const usersWithRoles = usersData?.map(user => ({
-        ...user,
-        role: rolesData?.find(r => r.user_id === user.id)?.role || 'user'
-      })) || [];
+      // Get auth users for last_sign_in_at
+      const { data: authData } = await supabase.auth.admin.listUsers();
+      const authUsers = authData?.users || [];
+
+      const usersWithRoles = usersData?.map(user => {
+        const authUser = authUsers.find(au => au.id === user.id);
+        return {
+          ...user,
+          role: rolesData?.find(r => r.user_id === user.id)?.role || 'user',
+          last_sign_in_at: authUser?.last_sign_in_at
+        };
+      }) || [];
 
       setUsers(usersWithRoles);
     } catch (error) {
@@ -200,8 +212,19 @@ export const UserManagementTable = () => {
     
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     
-    return matchesSearch && matchesRole;
+    // Consider active if signed in within last 30 days
+    const isActive = user.last_sign_in_at && 
+      new Date(user.last_sign_in_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && isActive) || 
+      (statusFilter === 'inactive' && !isActive);
+    
+    return matchesSearch && matchesRole && matchesStatus;
   });
+
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const startIndex = (currentPage - 1) * usersPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + usersPerPage);
 
   if (loading) {
     return <div className="text-center py-8">Loading users...</div>;
@@ -229,6 +252,17 @@ export const UserManagementTable = () => {
               <SelectItem value="all">All Roles</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
               <SelectItem value="user">User</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -309,19 +343,23 @@ export const UserManagementTable = () => {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Registration Date</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.length === 0 ? (
+            {paginatedUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   No users found
                 </TableCell>
               </TableRow>
             ) : (
-              filteredUsers.map((user) => (
+              paginatedUsers.map((user) => {
+                const isActive = user.last_sign_in_at && 
+                  new Date(user.last_sign_in_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                return (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">
                     {user.first_name} {user.last_name}
@@ -330,6 +368,11 @@ export const UserManagementTable = () => {
                   <TableCell>
                     <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
                       {user.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={isActive ? 'default' : 'outline'}>
+                      {isActive ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -357,11 +400,34 @@ export const UserManagementTable = () => {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
+              );
+              })
             )}
           </TableBody>
         </Table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <div className="flex items-center px-4">
+            Page {currentPage} of {totalPages}
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
