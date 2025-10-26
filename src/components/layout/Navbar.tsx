@@ -1,31 +1,26 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { Bell, Moon, Sun, User } from 'lucide-react';
 import logoImage from '@/assets/masroufi-logo.jpeg';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 const Navbar = () => {
-  const { user, toggleDarkMode, logoutUser, notifications } = useMasroufi();
-  const { toast } = useToast();
-  
+  const {
+    user,
+    toggleDarkMode,
+    logoutUser,
+    notifications
+  } = useMasroufi();
+  const {
+    toast
+  } = useToast();
   const unreadNotifications = notifications.filter(n => !n.read);
-
-  return (
-    <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+  return <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between px-4 h-16">
         <div className="flex items-center">
           <Link to="/dashboard" className="flex items-center">
-            <img src={logoImage} alt="Masroufi" className="h-10 w-auto" />
+            
           </Link>
         </div>
         
@@ -35,21 +30,15 @@ const Navbar = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="relative">
                 <Bell className="h-[1.2rem] w-[1.2rem]" />
-                {unreadNotifications.length > 0 && (
-                  <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
-                )}
+                {unreadNotifications.length > 0 && <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
               <DropdownMenuLabel>Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {notifications.length === 0 ? (
-                <div className="py-4 text-center text-gray-500">
+              {notifications.length === 0 ? <div className="py-4 text-center text-gray-500">
                   No notifications
-                </div>
-              ) : (
-                notifications.slice(0, 5).map((notification) => (
-                  <DropdownMenuItem key={notification.id} className="cursor-pointer flex flex-col items-start p-4">
+                </div> : notifications.slice(0, 5).map(notification => <DropdownMenuItem key={notification.id} className="cursor-pointer flex flex-col items-start p-4">
                     <div className="flex items-center w-full">
                       <div className="flex-1">
                         <p className={`text-sm font-medium ${notification.read ? 'text-gray-600 dark:text-gray-400' : ''}`}>
@@ -59,42 +48,22 @@ const Navbar = () => {
                           {new Date(notification.date).toLocaleString()}
                         </p>
                       </div>
-                      {!notification.read && (
-                        <span className="block h-2 w-2 rounded-full bg-blue-500"></span>
-                      )}
+                      {!notification.read && <span className="block h-2 w-2 rounded-full bg-blue-500"></span>}
                     </div>
-                  </DropdownMenuItem>
-                ))
-              )}
+                  </DropdownMenuItem>)}
             </DropdownMenuContent>
           </DropdownMenu>
           
           {/* Dark Mode Toggle */}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleDarkMode}
-          >
-            {user?.darkMode ? (
-              <Sun className="h-[1.2rem] w-[1.2rem]" />
-            ) : (
-              <Moon className="h-[1.2rem] w-[1.2rem]" />
-            )}
+          <Button variant="outline" size="icon" onClick={toggleDarkMode}>
+            {user?.darkMode ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
           </Button>
           
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="rounded-full">
-                {user?.avatar ? (
-                  <img 
-                    src={user.avatar} 
-                    alt={`${user.firstName} ${user.lastName}`} 
-                    className="w-8 h-8 rounded-full"
-                  />
-                ) : (
-                  <User className="h-[1.2rem] w-[1.2rem]" />
-                )}
+                {user?.avatar ? <img src={user.avatar} alt={`${user.firstName} ${user.lastName}`} className="w-8 h-8 rounded-full" /> : <User className="h-[1.2rem] w-[1.2rem]" />}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -106,22 +75,18 @@ const Navbar = () => {
                 <DropdownMenuItem>Settings</DropdownMenuItem>
               </Link>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  logoutUser();
-                  toast({
-                    title: "Logged out successfully",
-                  });
-                }}
-              >
+              <DropdownMenuItem onClick={() => {
+              logoutUser();
+              toast({
+                title: "Logged out successfully"
+              });
+            }}>
                 Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Navbar;
