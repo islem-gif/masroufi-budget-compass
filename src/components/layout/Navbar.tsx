@@ -1,10 +1,10 @@
 
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useMasroufi } from '@/lib/MasroufiContext';
 import { Bell, Moon, Sun, User } from 'lucide-react';
+import logoImage from '@/assets/masroufi-logo.jpeg';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +25,7 @@ const Navbar = () => {
       <div className="flex items-center justify-between px-4 h-16">
         <div className="flex items-center">
           <Link to="/dashboard" className="flex items-center">
-            <h1 className="text-xl font-bold text-green-600">Masroufi</h1>
+            <img src={logoImage} alt="Masroufi" className="h-10 w-auto" />
           </Link>
         </div>
         

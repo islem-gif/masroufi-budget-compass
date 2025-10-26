@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Globe, Moon, Sun, Bell, Lock, User, CreditCard, UserCog, HelpCircle } from 'lucide-react';
 
 const Settings = () => {
-  const { user, toggleDarkMode, changeLanguage, changeCurrency } = useMasroufi();
+  const { user, toggleDarkMode, changeLanguage, changeCurrency, updateUserProfile } = useMasroufi();
   const { toast } = useToast();
   
   const [userData, setUserData] = useState({
@@ -40,11 +40,25 @@ const Settings = () => {
   });
   
   // Update handler for general user info
-  const handleUpdateProfile = () => {
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been updated successfully"
-    });
+  const handleUpdateProfile = async () => {
+    try {
+      await updateUserProfile({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        phone: userData.phone
+      });
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been updated successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Handler for language change

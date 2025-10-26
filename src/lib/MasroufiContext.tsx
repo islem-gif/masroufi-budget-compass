@@ -42,6 +42,7 @@ interface MasroufiContextType {
   toggleDarkMode: () => Promise<void>;
   changeLanguage: (language: 'fr' | 'en') => Promise<void>;
   changeCurrency: (currency: string) => Promise<void>;
+  updateUserProfile: (updates: Partial<Pick<User, 'firstName' | 'lastName' | 'email' | 'phone'>>) => Promise<void>;
 }
 
 const MasroufiContext = createContext<MasroufiContextType | undefined>(undefined);
@@ -425,6 +426,22 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   };
 
+  const updateUserProfile = async (updates: Partial<Pick<User, 'firstName' | 'lastName' | 'email' | 'phone'>>) => {
+    if (user) {
+      try {
+        console.log("Updating user profile:", user.id, updates);
+        const updatedUser = { ...user, ...updates };
+        await supabaseOperations.updateUser(updatedUser);
+        console.log("User profile updated successfully");
+        
+        setUser(updatedUser);
+      } catch (error) {
+        console.error("Error updating user profile:", error);
+        throw error;
+      }
+    }
+  };
+
   const value = {
     user,
     isAuthenticated,
@@ -446,6 +463,7 @@ export const MasroufiProvider: React.FC<{ children: ReactNode }> = ({ children }
     toggleDarkMode,
     changeLanguage,
     changeCurrency,
+    updateUserProfile,
   };
 
   return <MasroufiContext.Provider value={value}>{children}</MasroufiContext.Provider>;
